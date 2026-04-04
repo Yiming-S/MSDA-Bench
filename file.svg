@@ -1,74 +1,108 @@
-<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="-30 -30 500 460" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <!-- Target Domain Gradient (Indigo -> Deep Purple) -->
-    <linearGradient id="target-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#4F46E5"/>
-      <stop offset="100%" stop-color="#7C3AED"/>
-    </linearGradient>
-    
-    <!-- Source 1 Gradient (Cyan -> Blue) -->
-    <linearGradient id="source1" x1="0%" y1="0%" x2="100%" y2="100%">
+    <!-- Modern Vibrant Gradients -->
+    <linearGradient id="g-cyan" x1="0%" y1="100%" x2="100%" y2="0%">
       <stop offset="0%" stop-color="#06B6D4"/>
       <stop offset="100%" stop-color="#3B82F6"/>
     </linearGradient>
-    
-    <!-- Source 2 Gradient (Blue -> Indigo) -->
-    <linearGradient id="source2" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#3B82F6"/>
-      <stop offset="100%" stop-color="#6366F1"/>
-    </linearGradient>
-    
-    <!-- Source 3 Gradient (Violet -> Pink) -->
-    <linearGradient id="source3" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="g-purple" x1="0%" y1="100%" x2="100%" y2="0%">
       <stop offset="0%" stop-color="#8B5CF6"/>
-      <stop offset="100%" stop-color="#EC4899"/>
+      <stop offset="100%" stop-color="#C084FC"/>
     </linearGradient>
-
-    <!-- Line Gradients to fade nicely -->
-    <linearGradient id="line1" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.8"/>
-      <stop offset="100%" stop-color="#4F46E5" stop-opacity="0.2"/>
+    <linearGradient id="g-pink" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#F43F5E"/>
+      <stop offset="100%" stop-color="#FB923C"/>
     </linearGradient>
-    <linearGradient id="line2" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#6366F1" stop-opacity="0.8"/>
-      <stop offset="100%" stop-color="#4F46E5" stop-opacity="0.2"/>
+    <linearGradient id="g-indigo" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4338CA"/>
+      <stop offset="100%" stop-color="#312E81"/>
     </linearGradient>
-    <linearGradient id="line3" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#8B5CF6" stop-opacity="0.8"/>
-      <stop offset="100%" stop-color="#4F46E5" stop-opacity="0.2"/>
+    <linearGradient id="g-lens" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.95"/>
+      <stop offset="50%" stop-color="#8B5CF6" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#06B6D4" stop-opacity="0.95"/>
     </linearGradient>
-
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000000" flood-opacity="0.12"/>
+    
+    <filter id="neon-glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
     </filter>
   </defs>
 
-  <g transform="translate(20, 20)">
-    <!-- Connection lines -->
-    <path d="M 70 70 C 170 70, 180 180, 280 180" fill="none" stroke="url(#line1)" stroke-width="8" stroke-linecap="round" />
-    <path d="M 70 180 C 170 180, 180 180, 280 180" fill="none" stroke="url(#line2)" stroke-width="8" stroke-linecap="round" />
-    <path d="M 70 290 C 170 290, 180 180, 280 180" fill="none" stroke="url(#line3)" stroke-width="8" stroke-linecap="round" />
+  <g transform="translate(0, 0)">
+    <!-- Background Tech Grid (BCI Electrode Placement Matrix) -->
+    <g opacity="0.3">
+      <!-- Horizontal lines -->
+      <line x1="20" y1="80" x2="200" y2="80" stroke="#94A3B8" stroke-width="2.5" stroke-dasharray="4 8"/>
+      <line x1="20" y1="200" x2="200" y2="200" stroke="#94A3B8" stroke-width="2.5" stroke-dasharray="4 8"/>
+      <line x1="20" y1="320" x2="200" y2="320" stroke="#94A3B8" stroke-width="2.5" stroke-dasharray="4 8"/>
+      <!-- Vertical lines -->
+      <line x1="20" y1="80" x2="20" y2="320" stroke="#94A3B8" stroke-width="2.5" stroke-dasharray="4 8"/>
+      <line x1="80" y1="80" x2="80" y2="320" stroke="#94A3B8" stroke-width="2.5" stroke-dasharray="4 8"/>
+      <line x1="140" y1="80" x2="140" y2="320" stroke="#94A3B8" stroke-width="2.5" stroke-dasharray="4 8"/>
+      <line x1="200" y1="80" x2="200" y2="320" stroke="#94A3B8" stroke-width="2.5" stroke-dasharray="4 8"/>
+    </g>
 
-    <!-- Source Domains -->
-    <circle cx="70" cy="70" r="32" fill="url(#source1)" filter="url(#shadow)"/>
-    <circle cx="70" cy="180" r="32" fill="url(#source2)" filter="url(#shadow)"/>
-    <circle cx="70" cy="290" r="32" fill="url(#source3)" filter="url(#shadow)"/>
-
-    <!-- Source Domain Centers -->
-    <circle cx="70" cy="70" r="10" fill="#FFFFFF"/>
-    <circle cx="70" cy="180" r="10" fill="#FFFFFF"/>
-    <circle cx="70" cy="290" r="10" fill="#FFFFFF"/>
-
-    <!-- Target Domain -->
-    <circle cx="280" cy="180" r="64" fill="url(#target-grad)" filter="url(#shadow)"/>
+    <!-- Signal 1: Pink (High frequency) -->
+    <path d="M 20 80 Q 50 20, 80 80 T 140 80 T 200 80 C 240 80, 280 180, 320 200 C 350 215, 370 200, 380 200" 
+          fill="none" stroke="url(#g-pink)" stroke-width="8" stroke-linecap="round" filter="url(#neon-glow)"/>
     
-    <!-- Target Domain inner rings -->
-    <circle cx="280" cy="180" r="36" fill="#FFFFFF" opacity="0.15"/>
-    <circle cx="280" cy="180" r="16" fill="#FFFFFF"/>
+    <!-- Signal 2: Cyan (Medium frequency) -->
+    <path d="M 20 200 Q 50 140, 80 200 T 140 200 T 200 200 C 240 200, 280 200, 320 200 C 350 200, 370 200, 380 200" 
+          fill="none" stroke="url(#g-cyan)" stroke-width="8" stroke-linecap="round" filter="url(#neon-glow)"/>
     
-    <!-- Orbital Nodes (Representing Data Transfer) -->
-    <circle cx="240" cy="130" r="6" fill="#06B6D4" filter="url(#shadow)"/>
-    <circle cx="330" cy="220" r="8" fill="#EC4899" filter="url(#shadow)"/>
-    <circle cx="310" cy="125" r="5" fill="#3B82F6" filter="url(#shadow)"/>
+    <!-- Signal 3: Purple (Low frequency) -->
+    <path d="M 20 320 Q 50 380, 80 320 T 140 320 T 200 320 C 240 320, 280 220, 320 200 C 350 185, 370 200, 380 200" 
+          fill="none" stroke="url(#g-purple)" stroke-width="8" stroke-linecap="round" filter="url(#neon-glow)"/>
+
+    <!-- Source Domain Nodes (Electrodes on the scalp) -->
+    <g filter="url(#neon-glow)">
+      <circle cx="20" cy="80" r="14" fill="#F43F5E" opacity="0.9"/>
+      <circle cx="20" cy="200" r="14" fill="#06B6D4" opacity="0.9"/>
+      <circle cx="20" cy="320" r="14" fill="#8B5CF6" opacity="0.9"/>
+    </g>
+    <circle cx="20" cy="80" r="6" fill="#FFFFFF"/>
+    <circle cx="20" cy="200" r="6" fill="#FFFFFF"/>
+    <circle cx="20" cy="320" r="6" fill="#FFFFFF"/>
+
+    <!-- Domain Adaptation Prism / Algorithm Lens -->
+    <g transform="translate(250, 200)">
+      <!-- A slick 3D glass monolith representing the AI alignment -->
+      <polygon points="-16,-140 16,-120 16,120 -16,140" fill="url(#g-lens)" filter="url(#neon-glow)"/>
+      <polygon points="-16,-140 -4,-133 16,-120" fill="#00F2FE" opacity="0.9"/>
+      <!-- Digital mapping grid lines on the prism -->
+      <line x1="-16" y1="-90" x2="16" y2="-74" stroke="#FFFFFF" stroke-width="2.5" opacity="0.7"/>
+      <line x1="-16" y1="-45" x2="16" y2="-29" stroke="#FFFFFF" stroke-width="2.5" opacity="0.7"/>
+      <line x1="-16" y1="0" x2="16" y2="16" stroke="#FFFFFF" stroke-width="2.5" opacity="0.7"/>
+      <line x1="-16" y1="45" x2="16" y2="61" stroke="#FFFFFF" stroke-width="2.5" opacity="0.7"/>
+      <line x1="-16" y1="90" x2="16" y2="106" stroke="#FFFFFF" stroke-width="2.5" opacity="0.7"/>
+    </g>
+
+    <!-- Target Domain (Aligned Benchmark Output) -->
+    <g transform="translate(380, 200)">
+      <!-- Target core singularity -->
+      <circle cx="0" cy="0" r="42" fill="url(#g-indigo)" filter="url(#neon-glow)"/>
+      <circle cx="0" cy="0" r="30" fill="#FFFFFF" opacity="0.15"/>
+      <circle cx="0" cy="0" r="16" fill="#06B6D4" filter="url(#neon-glow)"/>
+      <circle cx="0" cy="0" r="7" fill="#FFFFFF"/>
+      
+      <!-- Segmented outer tech orbital rings -->
+      <circle cx="0" cy="0" r="58" fill="none" stroke="#8B5CF6" stroke-width="4.5" stroke-dasharray="16 12 6 12"/>
+      <circle cx="0" cy="0" r="74" fill="none" stroke="#F43F5E" stroke-width="2.5" stroke-dasharray="4 12" opacity="0.8"/>
+      
+      <!-- Floating evaluation metrics nodes -->
+      <circle cx="-42" cy="-42" r="7" fill="#00F2FE" filter="url(#neon-glow)"/>
+      <circle cx="42" cy="42" r="8" fill="#F43F5E" filter="url(#neon-glow)"/>
+      <circle cx="52" cy="-32" r="5" fill="#8B5CF6" filter="url(#neon-glow)"/>
+    </g>
+
+    <!-- Data Packets Flowing Along EEG Waves -->
+    <circle cx="140" cy="80" r="6" fill="#FFFFFF" filter="url(#neon-glow)"/>
+    <circle cx="110" cy="260" r="6" fill="#FFFFFF" filter="url(#neon-glow)"/>
+    <circle cx="170" cy="380" r="6" fill="#FFFFFF" filter="url(#neon-glow)"/>
+    <circle cx="320" cy="200" r="7" fill="#FFFFFF" filter="url(#neon-glow)"/>
   </g>
 </svg>
