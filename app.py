@@ -114,26 +114,16 @@ with open(_svg_path, "rb") as _f:
 st.sidebar.markdown(
     f'''
     <div style="
-        display: flex; 
-        align-items: center; 
-        justify-content: flex-start;
-        gap: 16px; 
+        display: flex;
+        justify-content: center;
         margin-top: -15px;
-        margin-bottom: 24px; 
+        margin-bottom: 20px;
         padding-bottom: 16px;
         border-bottom: 1px solid #E2E8F0;
     ">
-        <img src="data:image/svg+xml;base64,{_svg_b64}" width="64" height="64" style="filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.1));">
-        <h1 style="
-            margin: 0; 
-            font-size: 2.2rem; 
-            font-weight: 800; 
-            background: linear-gradient(90deg, #4F46E5, #8B5CF6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: -0.5px;
-            line-height: 1.2;
-        ">MSDA-Bench</h1>
+        <img src="data:image/svg+xml;base64,{_svg_b64}"
+             style="width: 100%; max-width: 220px; height: auto;
+                    filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.1));">
     </div>
     ''',
     unsafe_allow_html=True
