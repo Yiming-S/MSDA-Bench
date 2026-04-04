@@ -123,3 +123,14 @@ pages = {
 
 page_name = st.sidebar.radio("Page", list(pages.keys()))
 pages[page_name].render(store, dataset)
+
+# Footer: author info
+st.sidebar.markdown("---")
+st.sidebar.markdown(
+    '<div style="font-size:0.75rem; color:#94A3B8; line-height:1.4;">'
+    '<b>Yiming Shen</b> &amp; <b>David Degras</b><br>'
+    'Department of Mathematics<br>'
+    'University of Massachusetts Boston'
+    '</div>',
+    unsafe_allow_html=True
+)
