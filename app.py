@@ -123,10 +123,10 @@ st.sidebar.markdown(
         padding-bottom: 16px;
         border-bottom: 1px solid #E2E8F0;
     ">
-        <img src="data:image/svg+xml;base64,{_svg_b64}" width="72" height="72" style="filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.1)); margin-bottom: 12px;">
+        <img src="data:image/svg+xml;base64,{_svg_b64}" width="100" height="100" style="filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.1)); margin-bottom: 8px;">
         <h1 style="
             margin: 0; 
-            font-size: 2.0rem; 
+            font-size: 1.6rem; 
             font-weight: 800; 
             background: linear-gradient(90deg, #4F46E5, #8B5CF6);
             -webkit-background-clip: text;
@@ -136,8 +136,8 @@ st.sidebar.markdown(
             text-align: center;
         ">MSDA-Bench</h1>
         <p style="
-            margin: 6px 0 0 0;
-            font-size: 0.85rem;
+            margin: 4px 0 0 0;
+            font-size: 0.75rem;
             font-weight: 600;
             color: #64748B;
             text-align: center;
