@@ -114,16 +114,35 @@ with open(_svg_path, "rb") as _f:
 st.sidebar.markdown(
     f'''
     <div style="
-        display: flex;
+        display: flex; 
+        flex-direction: column;
+        align-items: center; 
         justify-content: center;
         margin-top: -15px;
-        margin-bottom: 20px;
+        margin-bottom: 24px; 
         padding-bottom: 16px;
         border-bottom: 1px solid #E2E8F0;
     ">
-        <img src="data:image/svg+xml;base64,{_svg_b64}"
-             style="width: 100%; max-width: 220px; height: auto;
-                    filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.1));">
+        <img src="data:image/svg+xml;base64,{_svg_b64}" width="72" height="72" style="filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.1)); margin-bottom: 12px;">
+        <h1 style="
+            margin: 0; 
+            font-size: 2.0rem; 
+            font-weight: 800; 
+            background: linear-gradient(90deg, #4F46E5, #8B5CF6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+            line-height: 1.1;
+            text-align: center;
+        ">MSDA-Bench</h1>
+        <p style="
+            margin: 6px 0 0 0;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #64748B;
+            text-align: center;
+            line-height: 1.3;
+        ">Multi-Source Domain<br>Adaptation Benchmark</p>
     </div>
     ''',
     unsafe_allow_html=True
