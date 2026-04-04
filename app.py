@@ -30,21 +30,57 @@ st.markdown('''
         color: #64748B;
     }
     
-    /* Make sidebar radio options nicer */
-    div.row-widget.stRadio > div {
-        background: transparent;
-        gap: 4px;
+    /* --- Premium Sidebar Navigation --- */
+    
+    /* Hide the default radio circle */
+    div.stRadio div[role="radiogroup"] label[data-baseweb="radio"] > div:first-child {
+        display: none !important;
     }
-    div.row-widget.stRadio > div > label {
+    
+    /* Style the radio option container like a premium button */
+    div.stRadio div[role="radiogroup"] label[data-baseweb="radio"] {
         background-color: transparent;
-        border-radius: 6px;
-        padding: 8px 12px;
-        margin: 0;
-        transition: all 0.2s ease;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 6px;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid transparent;
+        cursor: pointer;
+        width: 100%;
+        display: flex;
+        align-items: center;
     }
-    div.row-widget.stRadio > div > label:hover {
-        background-color: #E0E7FF;
-        color: #4338CA;
+    
+    /* Hover effect */
+    div.stRadio div[role="radiogroup"] label[data-baseweb="radio"]:hover {
+        background-color: #F1F5F9;
+        transform: translateX(4px);
+    }
+    
+    /* Selected state */
+    div.stRadio div[role="radiogroup"] label[data-baseweb="radio"]:has(input:checked) {
+        background-color: #EEF2FF !important;
+        border: 1px solid #C7D2FE !important;
+        box-shadow: 0 1px 2px 0 rgba(99, 102, 241, 0.1) !important;
+        transform: translateX(4px);
+    }
+    
+    /* Text typography */
+    div.stRadio div[role="radiogroup"] label[data-baseweb="radio"] p {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: #475569;
+        margin: 0;
+    }
+    
+    /* Selected text color */
+    div.stRadio div[role="radiogroup"] label[data-baseweb="radio"]:has(input:checked) p {
+        color: #4338CA !important;
+    }
+    
+    /* Hide the "Page" label for the radio group to clean up UI */
+    div.stRadio > label {
+        display: none !important;
     }
     
     /* Headers typography */
