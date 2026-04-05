@@ -161,13 +161,6 @@ dataset = st.sidebar.selectbox("Dataset", list(DATA_DIRS.keys()))
 from data_loader import get_data_store
 store = get_data_store(DATA_DIRS[dataset], dataset)
 
-# Show completion in sidebar
-completion = store.derived['completion']
-n_done = completion.sum().sum()
-n_total = completion.size
-st.sidebar.metric("Completion", f"{int(n_done)}/{n_total}")
-st.sidebar.progress(float(n_done / n_total) if n_total > 0 else 0.0)
-
 if st.sidebar.button("Refresh Data"):
     st.cache_resource.clear()
     st.rerun()
