@@ -9,7 +9,7 @@ from utils import PIPE_ORDER, PIPE_COLORS
 
 
 def render(store, dataset):
-    st.header("10. Runtime & Efficiency")
+    st.header("10. Efficiency & Progress")
     st.markdown("How long does each pipeline take, and is the extra computation worth it? Find the best accuracy-to-time tradeoff.")
     try:
         ddf = store.detail_df
@@ -57,7 +57,7 @@ def render(store, dataset):
                 text=[f"{row['mean']:.1f}s"], textposition="outside"))
         fig.update_layout(title="Mean Elapsed Time per Pipeline",
                           yaxis_title="Seconds", template="plotly_white")
-        st.plotly_chart(fig, width="stretch")
+        st.plotly_chart(fig, use_container_width=True)
         st.caption("Average computation time per fold/config. Error bars = 1 SD.")
 
         # --- Accuracy-time scatter ---
@@ -113,7 +113,7 @@ def render(store, dataset):
                         xaxis=dict(range=[time_range[0], time_range[1]]),
                         yaxis=dict(range=[acc_range[0], acc_range[1]]),
                     )
-                    st.plotly_chart(fig, width="stretch")
+                    st.plotly_chart(fig, use_container_width=True)
                     st.caption(f"Showing {len(filtered)}/{len(scatter_data)} points within the selected range.")
                 else:
                     st.info("No data points in the selected range. Adjust the sliders.")
@@ -129,7 +129,7 @@ def render(store, dataset):
             pivot = pivot.reindex(columns=[p for p in PIPE_ORDER if p in pivot.columns])
             pivot.index = [f"S{s}" for s in pivot.index]
             st.dataframe(pivot.style.format("{:.1f}", na_rep="---"),
-                         width="stretch")
+                         use_container_width=True)
             st.caption("Mean computation time (seconds) per subject and pipeline.")
 
         # --- Top 10 slowest configs ---
@@ -141,7 +141,7 @@ def render(store, dataset):
             slow = slow.sort_values(time_col, ascending=False).head(10)
             slow.columns = ["Pipeline", "Config", "Mean Time (s)"]
             st.dataframe(slow.style.format({"Mean Time (s)": "{:.1f}"}),
-                         hide_index=True, width="stretch")
+                         hide_index=True, use_container_width=True)
             st.caption("Configs that take the longest on average. Consider whether the accuracy gain justifies the cost.")
 
     except Exception as e:

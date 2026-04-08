@@ -5,7 +5,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
-from utils import PIPE_ORDER, PIPE_COLORS, ROLE_COLORS, COOL_LIGHT_SEQUENTIAL
+from utils import PIPE_ORDER, PIPE_COLORS, ROLE_COLORS
 
 
 # ── Lazy utilization computation (cached) ──────────────────────────────────
@@ -69,7 +69,7 @@ def compute_utilization(_store, dataset):
 # ── Main render ────────────────────────────────────────────────────────────
 
 def render(store, dataset):
-    st.header("7. Session Usage Mechanisms")
+    st.header("7. Mechanism Explorer")
     st.markdown("Visualize HOW each pipeline uses sessions. "
                 "See BDP bridge/far assignments, MMP source selection, and DWP distance weights fold by fold.")
     try:
@@ -160,7 +160,7 @@ def render(store, dataset):
                     fmt = {"Mean #Used": "{:.1f}", "Mean Util.": "{:.1%}",
                            "SD": "{:.2f}"}
                     st.dataframe(display.style.format(fmt),
-                                 hide_index=True, width="stretch")
+                                 hide_index=True, use_container_width=True)
 
                     # ── Component B: Box Plot ──────────────────────────
                     st.subheader("Utilization Distribution by Pipeline")
@@ -188,14 +188,14 @@ def render(store, dataset):
                         showlegend=False,
                         template="plotly_white",
                     )
-                    st.plotly_chart(fig, width="stretch")
+                    st.plotly_chart(fig, use_container_width=True)
 
                     # ── Component C: Subject x Pipeline Heatmap ────────
                     st.subheader("Subject x Pipeline Utilization Heatmap")
                     st.caption(
                         "Color encodes mean utilization ratio per subject x pipeline. "
-                        "Darker blue = high utilization (uses most sessions). "
-                        "Lighter cells = low utilization (aggressive session filtering)."
+                        "Green/yellow = high utilization (uses most sessions). "
+                        "Red = low utilization (aggressive session filtering)."
                     )
 
                     pivot = filt.pivot_table(
@@ -209,7 +209,7 @@ def render(store, dataset):
                         pivot.values,
                         x=pivot.columns.tolist(),
                         y=pivot.index.tolist(),
-                        color_continuous_scale=COOL_LIGHT_SEQUENTIAL,
+                        color_continuous_scale="YlOrRd_r",
                         zmin=0, zmax=1,
                         text_auto=".0%",
                         aspect="auto",
@@ -219,7 +219,7 @@ def render(store, dataset):
                         height=max(300, len(pivot) * 30),
                         coloraxis_colorbar_title="Utilization",
                     )
-                    st.plotly_chart(fig, width="stretch")
+                    st.plotly_chart(fig, use_container_width=True)
 
         # ============================================================
         # TAB 2: Session Roles (existing functionality)
@@ -296,14 +296,14 @@ def _render_session_roles(store, dataset, subjects, pipe, avail_pipes):
             template="plotly_white",
             height=max(300, len(selected_subjects) * 50),
         )
-        st.plotly_chart(fig, width="stretch")
+        st.plotly_chart(fig, use_container_width=True)
     elif all_roles_data and role_col:
         combined = pd.concat(all_roles_data, ignore_index=True)
         counts = combined.groupby(["subject_label", role_col]).size().reset_index(name="count")
         fig = px.bar(counts, x="subject_label", y="count", color=role_col,
                      color_discrete_map=ROLE_COLORS, barmode="stack")
         fig.update_layout(template="plotly_white", xaxis_title="Subject", yaxis_title="Count")
-        st.plotly_chart(fig, width="stretch")
+        st.plotly_chart(fig, use_container_width=True)
     else:
         st.info("No role/distance data available for the selected pipeline.")
 
@@ -355,7 +355,7 @@ def _render_session_roles(store, dataset, subjects, pipe, avail_pipes):
                 yaxis=dict(visible=False),
                 template="plotly_white", height=250,
             )
-            st.plotly_chart(fig, width="stretch")
+            st.plotly_chart(fig, use_container_width=True)
             st.caption("Each point is one training session. Position = distance to target. Color = assigned role.")
     elif role_col and sess_col:
         role_counts = fold_data[role_col].value_counts().reset_index()
@@ -363,7 +363,7 @@ def _render_session_roles(store, dataset, subjects, pipe, avail_pipes):
         fig = px.bar(role_counts, x="role", y="count", color="role",
                      color_discrete_map=ROLE_COLORS)
         fig.update_layout(title=f"Role Counts (Fold {fold})", template="plotly_white")
-        st.plotly_chart(fig, width="stretch")
+        st.plotly_chart(fig, use_container_width=True)
 
     # Session assignment table
     st.subheader(f"Session Assignments (Fold {fold})")
@@ -372,9 +372,9 @@ def _render_session_roles(store, dataset, subjects, pipe, avail_pipes):
                    if c and c in fold_data.columns]
     if display_cols:
         show_data = fold_data[fold_data[role_col] != "target"][display_cols] if role_col else fold_data[display_cols]
-        st.dataframe(show_data, hide_index=True, width="stretch")
+        st.dataframe(show_data, hide_index=True, use_container_width=True)
     else:
-        st.dataframe(fold_data, hide_index=True, width="stretch")
+        st.dataframe(fold_data, hide_index=True, use_container_width=True)
     st.caption("Full table of session assignments for the selected fold.")
 
     # All-folds comparison
@@ -394,7 +394,7 @@ def _render_session_roles(store, dataset, subjects, pipe, avail_pipes):
             summary_rows.append(row_dict)
         if summary_rows:
             summary_df = pd.DataFrame(summary_rows)
-            st.dataframe(summary_df, hide_index=True, width="stretch")
+            st.dataframe(summary_df, hide_index=True, use_container_width=True)
             st.caption("Session assignments across all folds. Consistent patterns suggest stable mechanism behavior.")
 
     # Bridge count distribution
@@ -407,5 +407,5 @@ def _render_session_roles(store, dataset, subjects, pipe, avail_pipes):
                                    nbins=max(bridge_counts["n_bridge"].max(), 5))
                 fig.update_layout(title="Bridge Sessions per Fold", xaxis_title="N Bridge",
                                   yaxis_title="Count", template="plotly_white")
-                st.plotly_chart(fig, width="stretch")
+                st.plotly_chart(fig, use_container_width=True)
                 st.caption("Distribution of how many sessions are classified as bridge across all folds.")

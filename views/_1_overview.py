@@ -3,10 +3,9 @@ import plotly.express as px
 import pandas as pd
 import numpy as np
 import os
-from utils import COOL_LIGHT_COMPLETION
 
 def render(store, dataset):
-    st.header("1. Dataset Overview")
+    st.header("Overview")
     st.markdown(
         "**MSDA-Bench** (Multi-Source Domain Adaptation Benchmark) is an interactive dashboard "
         "for comparing cross-session EEG classification pipelines. It evaluates how different "
@@ -50,19 +49,19 @@ def render(store, dataset):
 
     # Completion heatmap
     st.subheader("Completion Matrix")
-    st.caption("Blue = completed, pale slate = missing. Each cell represents one subject x pipeline combination.")
+    st.caption("Green = completed, Red = missing. Each cell represents one subject x pipeline combination.")
 
     comp_numeric = completion.astype(int)
     fig = px.imshow(comp_numeric,
                     labels=dict(x="Pipeline", y="Subject", color="Complete"),
                     x=completion.columns.tolist(),
                     y=[f"S{s}" for s in completion.index],
-                    color_continuous_scale=COOL_LIGHT_COMPLETION,
+                    color_continuous_scale=[[0, '#ff4444'], [1, '#44bb44']],
                     zmin=0, zmax=1,
                     text_auto=True,
                     aspect='auto')
     fig.update_layout(height=max(300, len(subjects)*35))
-    st.plotly_chart(fig, width="stretch")
+    st.plotly_chart(fig, use_container_width=True)
 
     # Matched subjects
     st.subheader("Matched Subject Sets")

@@ -5,11 +5,11 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
-from utils import PIPE_ORDER, PIPE_COLORS, COOL_LIGHT_SEQUENTIAL
+from utils import PIPE_ORDER, PIPE_COLORS
 
 
 def render(store, dataset):
-    st.header("8. Target Session Difficulty")
+    st.header("8. Target Session Analysis")
     st.markdown("Which target sessions are hard to predict? See if early sessions (fewer trials) are systematically harder and whether pipelines differ in session-level strengths.")
     try:
         ddf = store.detail_df
@@ -40,7 +40,7 @@ def render(store, dataset):
 
         # --- Accuracy by target session heatmap ---
         st.subheader("Accuracy by Target Session")
-        st.caption("Heatmap of mean accuracy when each session is used as the prediction target. Darker blue cells = easier sessions, lighter cells = harder sessions.")
+        st.caption("Heatmap of mean accuracy when each session is used as the prediction target. Dark cells = easy sessions, light cells = hard sessions.")
         pivot = target_acc.pivot_table(index=target_col, columns="pipe_short",
                                        values=acc_col, aggfunc="mean")
         pivot = pivot.reindex(columns=[p for p in PIPE_ORDER if p in pivot.columns])
@@ -48,11 +48,11 @@ def render(store, dataset):
             fig = px.imshow(pivot.values,
                             x=pivot.columns.tolist(),
                             y=[str(s) for s in pivot.index.tolist()],
-                            color_continuous_scale=COOL_LIGHT_SEQUENTIAL,
+                            color_continuous_scale="RdYlGn",
                             text_auto=".3f", aspect="auto")
             fig.update_layout(title="Mean Accuracy per Target Session x Pipeline",
                               template="plotly_white")
-            st.plotly_chart(fig, width="stretch")
+            st.plotly_chart(fig, use_container_width=True)
             st.caption("Each cell shows mean accuracy when that session is the target (test set).")
 
         # --- Grouped bar per target session ---
@@ -63,7 +63,7 @@ def render(store, dataset):
                      category_orders={"pipe_short": pipes})
         fig.update_layout(title="Accuracy by Target Session",
                           yaxis_title="Mean Accuracy", template="plotly_white")
-        st.plotly_chart(fig, width="stretch")
+        st.plotly_chart(fig, use_container_width=True)
         st.caption("Grouped bars compare pipeline performance for each target session.")
 
         # --- Session difficulty ranking ---
@@ -73,7 +73,7 @@ def render(store, dataset):
         sess_diff.columns = [target_col, "mean_acc", "sd_acc", "n_folds"]
         sess_diff = sess_diff.sort_values("mean_acc", ascending=True)
         st.dataframe(sess_diff.style.format({"mean_acc": "{:.4f}", "sd_acc": "{:.4f}"}),
-                     hide_index=True, width="stretch")
+                     hide_index=True, use_container_width=True)
         st.caption("Sessions sorted by mean accuracy (hardest first). Hard sessions have lower mean accuracy.")
 
         # --- Pipeline x session interaction line chart ---
@@ -85,7 +85,7 @@ def render(store, dataset):
                           category_orders={"pipe_short": pipes})
             fig.update_layout(title="Pipeline Accuracy Across Target Sessions",
                               yaxis_title="Mean Accuracy", template="plotly_white")
-            st.plotly_chart(fig, width="stretch")
+            st.plotly_chart(fig, use_container_width=True)
             st.caption("Lines crossing indicate pipelines that excel on different sessions, suggesting complementary strengths.")
 
     except Exception as e:

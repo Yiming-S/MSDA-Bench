@@ -5,11 +5,11 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
-from utils import PIPE_ORDER, PIPE_COLORS, COOL_LIGHT_INTENSITY, COOL_LIGHT_SEQUENTIAL_REVERSED
+from utils import PIPE_ORDER, PIPE_COLORS
 
 
 def render(store, dataset):
-    st.header("3. Selection Sensitivity")
+    st.header("3. Stability & Sensitivity")
     st.markdown("How robust are the results? Are pipeline rankings fragile, and how much does picking the right config matter?")
     try:
         sdf = store.summary_df
@@ -37,7 +37,7 @@ def render(store, dataset):
                                category_orders={"pipe_short": pipes})
             fig.update_layout(title="Best - 2nd Best Accuracy Gap", xaxis_title="Gap",
                               yaxis_title="Count", template="plotly_white")
-            st.plotly_chart(fig, width="stretch")
+            st.plotly_chart(fig, use_container_width=True)
             st.caption("Smaller gaps mean the top two configs perform similarly, suggesting less sensitivity to config choice.")
 
         # --- Config selection premium (B - M) box plot ---
@@ -52,7 +52,7 @@ def render(store, dataset):
         fig.update_layout(title="Oracle Selection Premium per Pipeline",
                           yaxis_title="B(s,p) - M(s,p)", showlegend=False,
                           template="plotly_white")
-        st.plotly_chart(fig, width="stretch")
+        st.plotly_chart(fig, use_container_width=True)
         st.caption("Higher premium means picking the right config matters more for that pipeline.")
 
         # --- Ranking stability across metrics ---
@@ -72,10 +72,10 @@ def render(store, dataset):
             pivot = pivot.reindex([p for p in PIPE_ORDER if p in pivot.index])
             fig = px.imshow(pivot.values, x=pivot.columns.tolist(),
                             y=pivot.index.tolist(), text_auto=".1f",
-                            color_continuous_scale=COOL_LIGHT_SEQUENTIAL_REVERSED, aspect="auto")
+                            color_continuous_scale="YlOrRd", aspect="auto")
             fig.update_layout(title="Pipeline Rank by Metric (1=best)", template="plotly_white")
-            st.plotly_chart(fig, width="stretch")
-            st.caption("Darker cells indicate stronger ranks. Consistent patterns across metrics indicate a robustly strong (or weak) pipeline.")
+            st.plotly_chart(fig, use_container_width=True)
+            st.caption("Consistent ranks across metrics indicate a robustly strong (or weak) pipeline.")
 
         # --- Config variance per pipeline ---
         st.subheader("Config Variance per Pipeline")
@@ -100,7 +100,7 @@ def render(store, dataset):
                     yaxis_title="Within-Subject Config SD",
                     showlegend=False, template="plotly_white",
                 )
-                st.plotly_chart(fig, width="stretch")
+                st.plotly_chart(fig, use_container_width=True)
                 st.caption("Each dot is one subject. The box shows the distribution across subjects. "
                            "A pipeline with a high box = sensitive to config choice for many subjects.")
 
@@ -114,7 +114,7 @@ def render(store, dataset):
                     pivot_sd.values,
                     x=pivot_sd.columns.tolist(),
                     y=pivot_sd.index.tolist(),
-                    color_continuous_scale=COOL_LIGHT_INTENSITY,
+                    color_continuous_scale="YlOrRd",
                     text_auto=".3f", aspect="auto",
                     zmin=float(pivot_sd.values[np.isfinite(pivot_sd.values)].min()) if np.any(np.isfinite(pivot_sd.values)) else 0,
                     zmax=float(pivot_sd.values[np.isfinite(pivot_sd.values)].max()) if np.any(np.isfinite(pivot_sd.values)) else 0.2,
@@ -124,9 +124,9 @@ def render(store, dataset):
                     height=max(300, len(pivot_sd) * 35),
                     coloraxis_colorbar_title="SD",
                 )
-                st.plotly_chart(fig, width="stretch")
-                st.caption("Deeper tones indicate higher config sensitivity for that subject-pipeline pair. "
-                           "Lighter cells indicate lower sensitivity (works with most configs). "
+                st.plotly_chart(fig, use_container_width=True)
+                st.caption("Red = high config sensitivity for that subject-pipeline pair. "
+                           "Yellow = low sensitivity (works with most configs). "
                            "Compare columns to see which pipeline is most stable overall.")
 
             # --- Summary bar: mean SD per pipeline ---
@@ -151,7 +151,7 @@ def render(store, dataset):
                     yaxis_title="Mean Within-Subject Config SD",
                     template="plotly_white",
                 )
-                st.plotly_chart(fig, width="stretch")
+                st.plotly_chart(fig, use_container_width=True)
                 st.caption("Mean config SD across subjects, with error bars (+/-1 SD). "
                            "Lower = more robust to config choice.")
 
@@ -164,7 +164,7 @@ def render(store, dataset):
                            if c in stable.columns]
             st.dataframe(stable[display_cols].style.format(
                 {c: "{:.4f}" for c in display_cols if c in ("mean_acc", "sd_acc")}),
-                hide_index=True, width="stretch")
+                hide_index=True, use_container_width=True)
             st.caption("Configs with at least 3 subjects, ranked by lowest standard deviation.")
 
     except Exception as e:

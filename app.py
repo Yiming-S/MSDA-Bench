@@ -1,258 +1,101 @@
 import streamlit as st
 import os
-import utils as dashboard_utils
 
-st.set_page_config(
-    page_title="MSDA-Bench",
-    page_icon="file.svg",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
-
-register_plotly_template = getattr(dashboard_utils, "register_plotly_template", None)
-if callable(register_plotly_template):
-    register_plotly_template()
+st.set_page_config(page_title="MSDA-Bench", page_icon="file.svg", layout="wide")
 
 st.markdown('''
 <style>
-:root {
-    --lab-bg: #F4F7FB;
-    --lab-panel: rgba(255, 255, 255, 0.88);
-    --lab-panel-strong: rgba(255, 255, 255, 0.96);
-    --lab-sidebar: #ECF2F8;
-    --lab-border: #D6E2F0;
-    --lab-grid: #D7E0EA;
-    --lab-ink: #132238;
-    --lab-muted: #61758C;
-    --lab-accent: #2F6FED;
-    --lab-accent-soft: #E7F0FF;
-    --lab-shadow: 0 16px 34px rgba(19, 34, 56, 0.07);
-    --lab-shadow-soft: 0 10px 24px rgba(19, 34, 56, 0.05);
-    --lab-mono: "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
-    --lab-sans: "Avenir Next", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-}
-
-html, body, [class*="css"] {
-    font-family: var(--lab-sans);
-    font-variant-numeric: tabular-nums;
-}
-
-body {
-    background: linear-gradient(180deg, #F7FAFD 0%, #F2F6FB 100%);
-    color: var(--lab-ink);
-}
-
-.stApp {
-    background:
-        radial-gradient(circle at top right, rgba(47, 111, 237, 0.06), transparent 32%),
-        linear-gradient(180deg, #F7FAFD 0%, #F2F6FB 100%);
-}
-
-#MainMenu,
-footer,
-header,
-div[data-testid="stDecoration"] {
-    visibility: hidden;
-}
-
-[data-testid="stAppViewContainer"] > .main {
-    background: transparent;
-}
-
-.block-container {
-    padding-top: 1.35rem !important;
-    padding-bottom: 1.75rem !important;
-    padding-left: 2.15rem !important;
-    padding-right: 2.15rem !important;
-    max-width: 1500px;
-}
-
-section[data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #EEF4FA 0%, #E7EEF6 100%);
-    border-right: 1px solid var(--lab-border);
-}
-
-section[data-testid="stSidebar"] > div {
-    padding-top: 0.8rem;
-}
-
-h1, h2, h3 {
-    color: var(--lab-ink);
-    letter-spacing: -0.03em;
-    font-weight: 700 !important;
-}
-
-h1 {
-    font-size: 2.05rem;
-}
-
-p, li {
-    color: var(--lab-muted);
-    line-height: 1.6;
-}
-
-hr {
-    border: none;
-    border-top: 1px solid var(--lab-border);
-    margin: 1.2rem 0;
-}
-
-code, pre {
-    font-family: var(--lab-mono);
-}
-
-div[data-testid="stMetric"] {
-    background: linear-gradient(180deg, var(--lab-panel-strong) 0%, rgba(247, 250, 253, 0.95) 100%);
-    border: 1px solid var(--lab-border);
-    border-radius: 18px;
-    padding: 1rem 1.1rem;
-    box-shadow: var(--lab-shadow-soft);
-}
-
-div[data-testid="stMetricLabel"] {
-    color: var(--lab-muted);
-    font-size: 0.82rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    font-weight: 700;
-}
-
-div[data-testid="stMetricValue"],
-div[data-testid="stMetricDelta"] {
-    font-family: var(--lab-mono);
-    color: var(--lab-ink);
-}
-
-div[data-testid="stDataFrame"],
-div[data-testid="stTable"],
-div[data-testid="stPlotlyChart"] {
-    background: var(--lab-panel);
-    border: 1px solid var(--lab-border);
-    border-radius: 20px;
-    box-shadow: var(--lab-shadow);
-    overflow: hidden;
-}
-
-div[data-testid="stPlotlyChart"] {
-    padding: 0.2rem 0.2rem 0.1rem 0.2rem;
-}
-
-div[data-testid="stDataFrame"] *,
-div[data-testid="stTable"] table,
-div[data-testid="stTable"] th,
-div[data-testid="stTable"] td {
-    font-family: var(--lab-mono) !important;
-    font-variant-numeric: tabular-nums;
-}
-
-div[data-testid="stTable"] table {
-    border-collapse: collapse;
-}
-
-div[data-testid="stTable"] th,
-div[data-testid="stTable"] td {
-    border-bottom: 1px solid #E8EEF5;
-}
-
-div[data-testid="stAlert"] {
-    border-radius: 18px;
-    border: 1px solid var(--lab-border);
-    background: rgba(255, 255, 255, 0.82);
-}
-
-div.stButton > button,
-div[data-testid="stBaseButton-secondary"] {
-    border-radius: 999px;
-    border: 1px solid var(--lab-border);
-    background: linear-gradient(180deg, #FFFFFF 0%, #F4F8FC 100%);
-    color: var(--lab-ink);
-    box-shadow: var(--lab-shadow-soft);
-}
-
-div.stButton > button:hover,
-div[data-testid="stBaseButton-secondary"]:hover {
-    border-color: rgba(47, 111, 237, 0.32);
-    color: var(--lab-accent);
-}
-
-div[data-baseweb="select"] > div,
-div[data-baseweb="input"] > div,
-div[data-baseweb="textarea"] > div {
-    border-radius: 16px !important;
-    border-color: var(--lab-border) !important;
-    background: rgba(255, 255, 255, 0.82) !important;
-    box-shadow: none !important;
-}
-
-div.stSelectbox label,
-div.stMultiSelect label,
-div.stSlider label,
-div.stRadio > label {
-    color: var(--lab-muted) !important;
-    font-size: 0.78rem !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
-div.stTabs [data-baseweb="tab-list"] {
-    gap: 0.5rem;
-}
-
-div.stTabs [data-baseweb="tab"] {
-    background: rgba(255, 255, 255, 0.64);
-    border: 1px solid var(--lab-border);
-    border-radius: 999px;
-    padding: 0.45rem 0.95rem;
-    height: auto;
-    color: var(--lab-muted);
-}
-
-div.stTabs [data-baseweb="tab"][aria-selected="true"] {
-    background: var(--lab-accent-soft);
-    border-color: rgba(47, 111, 237, 0.24);
-    color: var(--lab-accent);
-}
-
-section[data-testid="stSidebar"] div.stRadio div[role="radiogroup"] label[data-baseweb="radio"] > div:first-child {
-    display: none !important;
-}
-
-section[data-testid="stSidebar"] div.stRadio > label {
-    display: none !important;
-}
-
-section[data-testid="stSidebar"] div.stRadio div[role="radiogroup"] label[data-baseweb="radio"] {
-    background: rgba(255, 255, 255, 0.46);
-    border: 1px solid transparent;
-    border-radius: 16px;
-    padding: 0.8rem 0.95rem;
-    margin-bottom: 0.45rem;
-    transition: all 0.18s ease;
-}
-
-section[data-testid="stSidebar"] div.stRadio div[role="radiogroup"] label[data-baseweb="radio"]:hover {
-    background: rgba(255, 255, 255, 0.72);
-    border-color: rgba(47, 111, 237, 0.12);
-    transform: translateX(2px);
-}
-
-section[data-testid="stSidebar"] div.stRadio div[role="radiogroup"] label[data-baseweb="radio"]:has(input:checked) {
-    background: linear-gradient(180deg, #F6FAFF 0%, #EAF2FF 100%);
-    border-color: rgba(47, 111, 237, 0.28);
-    box-shadow: inset 0 0 0 1px rgba(47, 111, 237, 0.06);
-}
-
-section[data-testid="stSidebar"] div.stRadio div[role="radiogroup"] label[data-baseweb="radio"] p {
-    font-size: 0.98rem;
-    font-weight: 650;
-    color: #40556E;
-    margin: 0;
-}
-
-section[data-testid="stSidebar"] div.stRadio div[role="radiogroup"] label[data-baseweb="radio"]:has(input:checked) p {
-    color: var(--lab-accent);
-}
+    /* Modern minimalist padding */
+    .block-container {
+        padding-top: 2rem !important;
+        padding-bottom: 2rem !important;
+    }
+    
+    /* Enhance metric cards */
+    div[data-testid="stMetric"] {
+        background-color: #F8FAFC;
+        border: 1px solid #E2E8F0;
+        border-radius: 8px;
+        padding: 15px;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
+    div[data-testid="stMetricValue"] {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #4F46E5;
+    }
+    div[data-testid="stMetricLabel"] {
+        font-size: 1rem;
+        font-weight: 500;
+        color: #64748B;
+    }
+    
+    /* --- Premium Sidebar Navigation --- */
+    
+    /* Hide the default radio circle */
+    div.stRadio div[role="radiogroup"] label[data-baseweb="radio"] > div:first-child {
+        display: none !important;
+    }
+    
+    /* Style the radio option container like a premium button */
+    div.stRadio div[role="radiogroup"] label[data-baseweb="radio"] {
+        background-color: transparent;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 6px;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid transparent;
+        cursor: pointer;
+        width: 100%;
+        display: flex;
+        align-items: center;
+    }
+    
+    /* Hover effect */
+    div.stRadio div[role="radiogroup"] label[data-baseweb="radio"]:hover {
+        background-color: #F1F5F9;
+        transform: translateX(4px);
+    }
+    
+    /* Selected state */
+    div.stRadio div[role="radiogroup"] label[data-baseweb="radio"]:has(input:checked) {
+        background-color: #EEF2FF !important;
+        border: 1px solid #C7D2FE !important;
+        box-shadow: 0 1px 2px 0 rgba(99, 102, 241, 0.1) !important;
+        transform: translateX(4px);
+    }
+    
+    /* Text typography */
+    div.stRadio div[role="radiogroup"] label[data-baseweb="radio"] p {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: #475569;
+        margin: 0;
+    }
+    
+    /* Selected text color */
+    div.stRadio div[role="radiogroup"] label[data-baseweb="radio"]:has(input:checked) p {
+        color: #4338CA !important;
+    }
+    
+    /* Hide the "Page" label for the radio group to clean up UI */
+    div.stRadio > label {
+        display: none !important;
+    }
+    
+    /* Headers typography */
+    h1, h2, h3 {
+        color: #1E293B;
+        font-weight: 700 !important;
+    }
+    
+    /* Dataframes rounded corners & subtle shadow */
+    div[data-testid="stDataFrame"] {
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid #E2E8F0;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    }
 </style>
 ''', unsafe_allow_html=True)
 
@@ -271,54 +114,35 @@ with open(_svg_path, "rb") as _f:
 st.sidebar.markdown(
     f'''
     <div style="
-        background: linear-gradient(180deg, rgba(255,255,255,0.94) 0%, rgba(246,250,253,0.94) 100%);
-        border: 1px solid #D6E2F0;
-        border-radius: 22px;
-        padding: 18px 16px;
-        margin-top: -6px;
-        margin-bottom: 18px;
-        box-shadow: 0 16px 34px rgba(19, 34, 56, 0.08);
+        display: flex; 
+        flex-direction: column;
+        align-items: center; 
+        justify-content: center;
+        margin-top: -15px;
+        margin-bottom: 24px; 
+        padding-bottom: 16px;
+        border-bottom: 1px solid #E2E8F0;
     ">
-        <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
-            <div style="
-                width:58px;
-                height:58px;
-                border-radius:18px;
-                background:#E7F0FF;
-                border:1px solid #C7D8EE;
-                display:flex;
-                align-items:center;
-                justify-content:center;
-                flex-shrink:0;
-            ">
-                <img src="data:image/svg+xml;base64,{_svg_b64}" width="34" height="34" style="opacity:0.95;">
-            </div>
-            <div>
-                <div style="
-                    margin:0 0 2px 0;
-                    font-size:0.68rem;
-                    font-weight:700;
-                    letter-spacing:0.14em;
-                    text-transform:uppercase;
-                    color:#6B7E95;
-                ">Cool Light Lab</div>
-                <h1 style="
-                    margin:0;
-                    font-size:1.45rem;
-                    font-weight:800;
-                    color:#132238;
-                    letter-spacing:-0.05em;
-                    line-height:1.0;
-                ">MSDA-Bench</h1>
-            </div>
-        </div>
+        <img src="data:image/svg+xml;base64,{_svg_b64}" width="100" height="100" style="filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.1)); margin-bottom: 8px;">
+        <h1 style="
+            margin: 0; 
+            font-size: 1.6rem; 
+            font-weight: 800; 
+            background: linear-gradient(90deg, #4F46E5, #8B5CF6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+            line-height: 1.1;
+            text-align: center;
+        ">MSDA-Bench</h1>
         <p style="
-            margin:0;
-            font-size:0.78rem;
-            font-weight:500;
-            color:#5F7088;
-            line-height:1.55;
-        ">Multi-source EEG session-shift benchmark with matched-pipeline comparison, mechanism inspection, and runtime tradeoff analysis.</p>
+            margin: 4px 0 0 0;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #64748B;
+            text-align: center;
+            line-height: 1.3;
+        ">Multi-Source Domain<br>Adaptation Benchmark</p>
     </div>
     ''',
     unsafe_allow_html=True
@@ -361,7 +185,7 @@ pages[page_name].render(store, dataset)
 # Author info at bottom of sidebar
 st.sidebar.markdown("---")
 st.sidebar.markdown(
-    '<div style="font-size:0.75rem; color:#6F8096; line-height:1.6;">'
+    '<div style="font-size:0.75rem; color:#94A3B8; line-height:1.5;">'
     '<b>Yiming Shen</b> &amp; <b>David Degras</b><br>'
     'Department of Mathematics<br>'
     'University of Massachusetts Boston'

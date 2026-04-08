@@ -5,11 +5,11 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
-from utils import PIPE_ORDER, PIPE_COLORS, COOL_LIGHT_PANDAS_CMAP, format_acc
+from utils import PIPE_ORDER, PIPE_COLORS, format_acc
 
 
 def render(store, dataset):
-    st.header("5. Subject-Level Results")
+    st.header("5. Subject Explorer")
     st.markdown("Deep-dive into a single subject. See all 24 configs across all pipelines and understand why this subject behaves differently from the group.")
     try:
         sdf = store.summary_df
@@ -32,7 +32,7 @@ def render(store, dataset):
             pivot = pivot.reindex(columns=[p for p in PIPE_ORDER if p in pivot.columns])
             fmt = {c: "{:.4f}" for c in pivot.columns}
             st.dataframe(pivot.style.format(fmt, na_rep="---").background_gradient(
-                cmap=COOL_LIGHT_PANDAS_CMAP, axis=None), width="stretch")
+                cmap="RdYlGn", axis=None), use_container_width=True)
             st.caption("Each row is a config (feature/classifier/DA); each column is a pipeline.")
         else:
             st.info(f"No data for subject S{subj}.")
@@ -54,7 +54,7 @@ def render(store, dataset):
             fig.update_layout(title=f"S{subj}: Mean vs Best Accuracy",
                               yaxis_title="Accuracy", barmode="group",
                               template="plotly_white")
-            st.plotly_chart(fig, width="stretch")
+            st.plotly_chart(fig, use_container_width=True)
             st.caption("M_acc = mean across all configs; B_acc = best single config (oracle).")
 
             # Additional metrics table
@@ -63,7 +63,7 @@ def render(store, dataset):
                         if c in sp_ord.columns]
             fmt2 = {c: "{:.4f}" for c in disp_cols if c in ("M_acc", "B_acc", "G_gain", "H_helps")}
             st.dataframe(sp_ord[disp_cols].style.format(fmt2),
-                         hide_index=True, width="stretch")
+                         hide_index=True, use_container_width=True)
 
         # --- Best vs mean gap per pipeline ---
         st.subheader(f"Best vs Mean Gap for S{subj}")
@@ -79,7 +79,7 @@ def render(store, dataset):
             fig.update_layout(title=f"S{subj}: Oracle Premium (B - M)",
                               yaxis_title="Accuracy Gap", showlegend=False,
                               template="plotly_white")
-            st.plotly_chart(fig, width="stretch")
+            st.plotly_chart(fig, use_container_width=True)
             st.caption("Larger gap means config selection matters more for this subject on that pipeline.")
 
     except Exception as e:

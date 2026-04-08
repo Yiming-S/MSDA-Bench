@@ -4,11 +4,11 @@ import streamlit as st
 import plotly.express as px
 import pandas as pd
 import numpy as np
-from utils import PIPE_ORDER, PIPE_COLORS, COOL_LIGHT_SEQUENTIAL
+from utils import PIPE_ORDER, PIPE_COLORS
 
 
 def render(store, dataset):
-    st.header("4. Configuration Effects")
+    st.header("4. Config Explorer")
     st.markdown("Explore all 24 feature/classifier/DA combinations. Find which configs are universally good and which are situationally useful.")
     try:
         cfg = store.derived["config_agg"]
@@ -55,12 +55,12 @@ def render(store, dataset):
         fig = px.imshow(pivot.values,
                         x=pivot.columns.tolist(),
                         y=pivot.index.tolist(),
-                        color_continuous_scale=COOL_LIGHT_SEQUENTIAL,
+                        color_continuous_scale="RdYlGn",
                         text_auto=".3f", aspect="auto",
                         zmin=pivot.values[np.isfinite(pivot.values)].min() - 0.02 if np.any(np.isfinite(pivot.values)) else 0.5,
                         zmax=pivot.values[np.isfinite(pivot.values)].max() + 0.02 if np.any(np.isfinite(pivot.values)) else 1.0)
         fig.update_layout(template="plotly_white", height=max(400, top_n * 25))
-        st.plotly_chart(fig, width="stretch")
+        st.plotly_chart(fig, use_container_width=True)
 
         # Feature Contribution is shown in Pipeline Benchmark page
 
@@ -74,7 +74,7 @@ def render(store, dataset):
                         ascending=(sort_by == "sd_acc")).head(top_n * len(pipes))
         fmt = {c: "{:.4f}" for c in display_cols if c in ("mean_acc", "median_acc", "sd_acc", "mean_gain", "helps_rate")}
         st.dataframe(sorted_cfg[display_cols].style.format(fmt),
-                     hide_index=True, width="stretch")
+                     hide_index=True, use_container_width=True)
         st.caption(f"Configs sorted by {sort_by}. Shows top entries per pipeline.")
 
     except Exception as e:
