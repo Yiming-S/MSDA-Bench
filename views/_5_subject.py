@@ -10,7 +10,7 @@ from utils import PIPE_ORDER, PIPE_COLORS, format_acc
 
 def render(store, dataset):
     st.header("5. Subject Explorer")
-    st.markdown("Deep-dive into a single subject. See all 24 configs across all pipelines and understand why this subject behaves differently from the group.")
+    st.markdown("Deep-dive into a single subject. See all 24 configurations across all pipelines and understand why this subject behaves differently from the group.")
     try:
         sdf = store.summary_df
         sp = store.derived["subject_pipeline"]
@@ -33,7 +33,7 @@ def render(store, dataset):
             fmt = {c: "{:.4f}" for c in pivot.columns}
             st.dataframe(pivot.style.format(fmt, na_rep="---").background_gradient(
                 cmap="RdYlGn", axis=None), width="stretch")
-            st.caption("Each row is a config (feature/classifier/DA); each column is a pipeline.")
+            st.caption("Each row is a configuration (feature/classifier/DA); each column is a pipeline.")
         else:
             st.info(f"No data for subject S{subj}.")
 
@@ -55,7 +55,7 @@ def render(store, dataset):
                               yaxis_title="Accuracy", barmode="group",
                               template="plotly_white")
             st.plotly_chart(fig, width="stretch")
-            st.caption("M_acc = mean across all configs; B_acc = best single config (oracle).")
+            st.caption("M_acc = mean across all configurations; B_acc = best single configuration (oracle).")
 
             # Additional metrics table
             disp_cols = [c for c in ["pipe_short", "M_acc", "B_acc", "G_gain", "H_helps",
@@ -80,7 +80,7 @@ def render(store, dataset):
                               yaxis_title="Accuracy Gap", showlegend=False,
                               template="plotly_white")
             st.plotly_chart(fig, width="stretch")
-            st.caption("Larger gap means config selection matters more for this subject on that pipeline.")
+            st.caption("Larger gap means configuration selection matters more for this subject on that pipeline.")
 
     except Exception as e:
         st.error(f"Error rendering Subject Explorer page: {e}")

@@ -15,7 +15,7 @@ def render(store, dataset):
     )
     st.markdown(
         "Use the sidebar to switch datasets, then navigate through the pages to explore "
-        "pipeline accuracy, config sensitivity, domain adaptation effects, session mechanisms, and timing."
+        "pipeline accuracy, configuration sensitivity, domain adaptation effects, session mechanisms, and timing."
     )
 
     st.markdown("---")
@@ -31,7 +31,7 @@ def render(store, dataset):
     n_configs = len(df[(df['subject']==subjects[0]) & (df['pipe_short']==df['pipe_short'].iloc[0])]) if len(df) > 0 else 0
 
     summary_data = {
-        'Item': ['Dataset', 'Subjects', 'Sessions/subject', 'Pipelines', 'Configs/pipeline',
+        'Item': ['Dataset', 'Subjects', 'Sessions/subject', 'Pipelines', 'Configurations/pipeline',
                  'Features', 'Classifiers', 'DA methods', 'Total detail records'],
         'Value': [
             dataset,

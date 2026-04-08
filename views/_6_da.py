@@ -23,7 +23,7 @@ def render(store, dataset):
 
         # --- Overall DA gain bar chart per pipeline ---
         st.subheader("Overall DA Gain per Pipeline")
-        st.caption("Mean DA lift (acc_DA - baseline) per pipeline, averaged across all configs and subjects. Positive = DA helps on average, negative = DA hurts.")
+        st.caption("Mean DA lift (acc_DA - baseline) per pipeline, averaged across all configurations and subjects. Positive = DA helps on average, negative = DA hurts.")
         if not sp.empty and "G_gain" in sp.columns:
             gain_agg = sp[sp["pipe_short"].isin(pipes)].groupby("pipe_short")["G_gain"].agg(
                 ["mean", "std"]).reset_index()
@@ -43,8 +43,8 @@ def render(store, dataset):
             st.caption("Positive gain means DA improves over baseline on average. Error bars = 1 SD across subjects.")
 
         # --- DA gain heatmap: config x pipeline ---
-        st.subheader("DA Gain Heatmap (Config x Pipeline)")
-        st.caption("Per-config DA gain matrix. Red cells = DA hurts this config, green = DA helps. Identifies dangerous feature+DA combinations (e.g., logvar+coral).")
+        st.subheader("DA Gain Heatmap (Configuration x Pipeline)")
+        st.caption("Per-configuration DA gain matrix. Red cells = DA hurts this configuration, green = DA helps. Identifies dangerous feature+DA combinations (e.g., logvar+coral).")
         if not cfg.empty and "mean_gain" in cfg.columns:
             top_cfgs = cfg.groupby("config_label")["mean_gain"].mean().nlargest(20).index
             filt = cfg[cfg["config_label"].isin(top_cfgs) & cfg["pipe_short"].isin(pipes)]
@@ -55,7 +55,7 @@ def render(store, dataset):
                 fig = px.imshow(pivot.values, x=pivot.columns.tolist(),
                                 y=pivot.index.tolist(), color_continuous_scale="RdBu",
                                 color_continuous_midpoint=0, text_auto=".3f", aspect="auto")
-                fig.update_layout(title="Top 20 Configs: Mean DA Gain",
+                fig.update_layout(title="Top 20 Configurations: Mean DA Gain",
                                   template="plotly_white", height=max(400, len(top_cfgs) * 22))
                 st.plotly_chart(fig, width="stretch")
                 st.caption("Blue = positive gain (DA helps); red = negative (DA hurts). Diverging from zero.")
@@ -90,7 +90,7 @@ def render(store, dataset):
 
         # --- Harm rate table ---
         st.subheader("Harm Rate by Pipeline")
-        st.caption("Fraction of config-fold combinations where DA strictly reduces accuracy. High harm rate suggests DA should be used cautiously with this pipeline.")
+        st.caption("Fraction of configuration-fold combinations where DA strictly reduces accuracy. High harm rate suggests DA should be used cautiously with this pipeline.")
         if not cfg.empty and "helps_rate" in cfg.columns:
             harm = cfg[cfg["pipe_short"].isin(pipes)].groupby("pipe_short").agg(
                 mean_helps=("helps_rate", "mean"),
@@ -102,7 +102,7 @@ def render(store, dataset):
             st.dataframe(harm[["pipe_short", "mean_helps", "harm_rate", "min_helps", "n_configs"]].style.format(
                 {"mean_helps": "{:.3f}", "harm_rate": "{:.3f}", "min_helps": "{:.3f}"}),
                 hide_index=True, width="stretch")
-            st.caption("Harm rate = fraction of configs where DA reduces accuracy below baseline.")
+            st.caption("Harm rate = fraction of configurations where DA reduces accuracy below baseline.")
 
     except Exception as e:
         st.error(f"Error rendering DA Analysis page: {e}")

@@ -58,11 +58,11 @@ def render(store, dataset):
         fig.update_layout(title="Mean Elapsed Time per Pipeline",
                           yaxis_title="Seconds", template="plotly_white")
         st.plotly_chart(fig, width="stretch")
-        st.caption("Average computation time per fold/config. Error bars = 1 SD.")
+        st.caption("Average computation time per fold/configuration. Error bars = 1 SD.")
 
         # --- Accuracy-time scatter ---
         st.subheader("Accuracy vs Time Tradeoff")
-        st.caption("Each dot is one config x pipeline combination. Top-left corner = best (high accuracy, low time). "
+        st.caption("Each dot is one configuration x pipeline combination. Top-left corner = best (high accuracy, low time). "
                    "Use the sliders below to zoom into a region of interest.")
         acc_col = "acc_DA" if "acc_DA" in src_df.columns else ("cvMeanAcc" if "cvMeanAcc" in src_df.columns else None)
         if acc_col and time_col:
@@ -133,16 +133,16 @@ def render(store, dataset):
             st.caption("Mean computation time (seconds) per subject and pipeline.")
 
         # --- Top 10 slowest configs ---
-        st.subheader("Top 10 Slowest Configs")
-        st.caption("The most computationally expensive config-pipeline combinations. Typically SVM classifiers with DWP or MMP_mta data replication.")
+        st.subheader("Top 10 Slowest Configurations")
+        st.caption("The most computationally expensive configuration-pipeline combinations. Typically SVM classifiers with DWP or MMP_mta data replication.")
         if "config_label" in src_df.columns:
             slow = src_df[src_df["pipe_short"].isin(pipes)].groupby(
                 ["pipe_short", "config_label"])[time_col].mean().reset_index()
             slow = slow.sort_values(time_col, ascending=False).head(10)
-            slow.columns = ["Pipeline", "Config", "Mean Time (s)"]
+            slow.columns = ["Pipeline", "Configuration", "Mean Time (s)"]
             st.dataframe(slow.style.format({"Mean Time (s)": "{:.1f}"}),
                          hide_index=True, width="stretch")
-            st.caption("Configs that take the longest on average. Consider whether the accuracy gain justifies the cost.")
+            st.caption("Configurations that take the longest on average. Consider whether the accuracy gain justifies the cost.")
 
     except Exception as e:
         st.error(f"Error rendering Efficiency page: {e}")

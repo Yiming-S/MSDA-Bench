@@ -8,12 +8,12 @@ from utils import PIPE_ORDER, PIPE_COLORS
 
 
 def render(store, dataset):
-    st.header("4. Config Explorer")
-    st.markdown("Explore all 24 feature/classifier/DA combinations. Find which configs are universally good and which are situationally useful.")
+    st.header("4. Configuration Effects")
+    st.markdown("Explore all 24 feature/classifier/DA combinations. Find which configurations are universally good and which are situationally useful.")
     try:
         cfg = store.derived["config_agg"]
         if cfg.empty:
-            st.warning("No config aggregation data available.")
+            st.warning("No configuration aggregation data available.")
             return
 
         pipes = [p for p in PIPE_ORDER if p in cfg["pipe_short"].unique()]
@@ -26,16 +26,16 @@ def render(store, dataset):
         }
         col_sort, col_topn = st.columns(2)
         with col_sort:
-            sort_by = st.selectbox("Sort configs by", list(sort_options.keys()),
+            sort_by = st.selectbox("Sort configurations by", list(sort_options.keys()),
                                    format_func=lambda k: sort_options[k])
         with col_topn:
             n_total = cfg["config_label"].nunique()
-            top_n = st.slider("Top N configs (heatmap only)", 5, n_total, min(15, n_total))
+            top_n = st.slider("Top N configurations (heatmap only)", 5, n_total, min(15, n_total))
 
         # --- Config x Pipeline heatmap ---
-        st.subheader("Config x Pipeline Heatmap")
-        st.caption(f"Showing top {top_n} configs sorted by {sort_options[sort_by]}. "
-                   "Each cell is the mean accuracy for that config-pipeline pair across all matched subjects.")
+        st.subheader("Configuration x Pipeline Heatmap")
+        st.caption(f"Showing top {top_n} configurations sorted by {sort_options[sort_by]}. "
+                   "Each cell is the mean accuracy for that configuration-pipeline pair across all matched subjects.")
 
         # Get top configs by chosen metric across all pipelines
         cfg_rank = cfg.groupby("config_label")[sort_by].mean().sort_values(
@@ -65,8 +65,8 @@ def render(store, dataset):
         # Feature Contribution is shown in Pipeline Benchmark page
 
         # --- Detailed config table ---
-        st.subheader("Config Details")
-        st.caption("Full table of config-level statistics. Sort by accuracy, gain, or stability to identify the best candidates.")
+        st.subheader("Configuration Details")
+        st.caption("Full table of configuration-level statistics. Sort by accuracy, gain, or stability to identify the best candidates.")
         display_cols = [c for c in ["pipe_short", "config_label", "mean_acc", "median_acc",
                                      "sd_acc", "mean_gain", "helps_rate", "n_subject"]
                        if c in cfg.columns]
@@ -75,7 +75,7 @@ def render(store, dataset):
         fmt = {c: "{:.4f}" for c in display_cols if c in ("mean_acc", "median_acc", "sd_acc", "mean_gain", "helps_rate")}
         st.dataframe(sorted_cfg[display_cols].style.format(fmt),
                      hide_index=True, width="stretch")
-        st.caption(f"Configs sorted by {sort_by}. Shows top entries per pipeline.")
+        st.caption(f"Configurations sorted by {sort_by}. Shows top entries per pipeline.")
 
     except Exception as e:
-        st.error(f"Error rendering Config Explorer page: {e}")
+        st.error(f"Error rendering Configuration Effects page: {e}")

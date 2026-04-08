@@ -7,7 +7,7 @@ from utils import PIPE_ORDER, PIPE_COLORS, format_acc, make_heatmap
 
 def render(store, dataset):
     st.header("2. Pipeline Benchmark")
-    st.markdown("Compare all pipelines head-to-head on matched subjects. Switch between metrics (mean-over-configs vs oracle best) to see how rankings change.")
+    st.markdown("Compare all pipelines head-to-head on matched subjects. Switch between metrics (mean-over-configurations vs oracle best) to see how rankings change.")
 
     sp = store.derived['subject_pipeline']
     completion = store.derived['completion']
@@ -15,27 +15,27 @@ def render(store, dataset):
 
     # Metric selector — in main area, not sidebar
     metric_options = {
-        'M(s,p) — Mean over all configs': 'M_acc',
-        'B(s,p) — Best config (oracle)': 'B_acc',
+        'M(s,p) — Mean over all configurations': 'M_acc',
+        'B(s,p) — Best configuration (oracle)': 'B_acc',
         'G(s,p) — Mean DA gain': 'G_gain',
         'H(s,p) — DA helps rate': 'H_helps',
     }
 
     metric_descriptions = {
-        'M(s,p) — Mean over all configs':
-            'Primary metric. For each subject, average accuracy across all 24 configs. '
-            'No config selection bias — represents pipeline performance you would get '
-            'without knowing which config is best.',
-        'B(s,p) — Best config (oracle)':
-            'Oracle metric. For each subject, the single best config accuracy. '
-            'This is an upper bound — in practice you cannot know the best config '
+        'M(s,p) — Mean over all configurations':
+            'Primary metric. For each subject, average accuracy across all 24 configurations. '
+            'No configuration selection bias — represents pipeline performance you would get '
+            'without knowing which configuration is best.',
+        'B(s,p) — Best configuration (oracle)':
+            'Oracle metric. For each subject, the single best configuration accuracy. '
+            'This is an upper bound — in practice you cannot know the best configuration '
             'without labeled test data. Use as a supplement to M(s,p).',
         'G(s,p) — Mean DA gain':
             'Mean domain adaptation lift. For each subject, average of (acc_DA - baseline) '
-            'across all configs. Positive = DA helps on average, negative = DA hurts.',
+            'across all configurations. Positive = DA helps on average, negative = DA hurts.',
         'H(s,p) — DA helps rate':
-            'Fraction of configs where DA improves accuracy (acc_DA > baseline). '
-            'A value of 0.6 means DA helps in 60% of configs for that subject.',
+            'Fraction of configurations where DA improves accuracy (acc_DA > baseline). '
+            'A value of 0.6 means DA helps in 60% of configurations for that subject.',
     }
 
     col_ctrl, col_desc = st.columns([1, 2])
@@ -116,7 +116,7 @@ def render(store, dataset):
 
     # --- Summary statistics ---
     st.subheader("Summary Statistics")
-    st.caption("Descriptive statistics computed across subjects (not across configs). "
+    st.caption("Descriptive statistics computed across subjects (not across configurations). "
                "Each subject contributes one number per pipeline, then Mean/Median/SD/percentiles are computed on those.")
 
     stats_rows = []
@@ -191,7 +191,7 @@ def render(store, dataset):
 
     # --- Winning configs (only for B metric) ---
     if col_name == 'B_acc':
-        st.subheader("Winning Configs")
+        st.subheader("Winning Configurations")
         st.caption("Which feature/classifier/DA combination achieves the highest accuracy most often. "
                    "Only shown when the Oracle Best metric is selected.")
 
@@ -216,7 +216,7 @@ def render(store, dataset):
     # --- Feature Contribution (always shown) ---
     st.subheader("Feature Contribution")
     st.caption("Mean accuracy broken down by feature type (CSP, logvar, TS) for each pipeline. "
-               "Shows which feature extraction method each pipeline benefits from most, using all configs.")
+               "Shows which feature extraction method each pipeline benefits from most, using all configurations.")
 
     cfg = store.derived.get('config_agg')
     if cfg is not None and not cfg.empty and 'feature' in cfg.columns:

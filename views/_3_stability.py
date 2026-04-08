@@ -10,7 +10,7 @@ from utils import PIPE_ORDER, PIPE_COLORS
 
 def render(store, dataset):
     st.header("3. Stability & Sensitivity")
-    st.markdown("How robust are the results? Are pipeline rankings fragile, and how much does picking the right config matter?")
+    st.markdown("How robust are the results? Are pipeline rankings fragile, and how much does picking the right configuration matter?")
     try:
         sdf = store.summary_df
         sp = store.derived["subject_pipeline"]
@@ -21,9 +21,10 @@ def render(store, dataset):
 
         pipes = [p for p in PIPE_ORDER if p in sp["pipe_short"].unique()]
 
-        # --- Best vs 2nd-best gap histogram ---
-        st.subheader("Best vs 2nd-Best Config Gap")
-        st.caption("Gap between the best and second-best config for each subject x pipeline. Small gaps mean the winner could easily change with a different fold split.")
+        # --- Best vs 2nd-best gap bar chart ---
+        st.subheader("Best vs 2nd-Best Configuration Gap")
+        st.caption("Mean accuracy gap between the best and second-best configuration for each pipeline, averaged across subjects. "
+                   "A small gap means the top two configurations perform similarly, so the pipeline is not sensitive to configuration choice.")
         gaps = []
         for (subj, pipe), grp in sdf.groupby(["subject", "pipe_short"]):
             accs = grp["cvMeanAcc"].dropna().sort_values(ascending=False)
@@ -32,17 +33,31 @@ def render(store, dataset):
                              "gap": accs.iloc[0] - accs.iloc[1]})
         if gaps:
             gap_df = pd.DataFrame(gaps)
-            fig = px.histogram(gap_df, x="gap", color="pipe_short", barmode="overlay",
-                               color_discrete_map=PIPE_COLORS, nbins=30,
-                               category_orders={"pipe_short": pipes})
-            fig.update_layout(title="Best - 2nd Best Accuracy Gap", xaxis_title="Gap",
-                              yaxis_title="Count", template="plotly_white")
+            gap_agg = gap_df.groupby("pipe_short")["gap"].agg(["mean", "std"]).reset_index()
+            gap_agg["order"] = gap_agg["pipe_short"].map({p: i for i, p in enumerate(PIPE_ORDER)})
+            gap_agg = gap_agg.sort_values("order")
+
+            fig = go.Figure()
+            for _, row in gap_agg.iterrows():
+                fig.add_trace(go.Bar(
+                    x=[row["pipe_short"]],
+                    y=[row["mean"]],
+                    error_y=dict(type="data", array=[row["std"]], visible=True),
+                    marker_color=PIPE_COLORS.get(row["pipe_short"], "#888"),
+                    text=[f'{row["mean"]:.4f}'],
+                    textposition="outside",
+                    name=row["pipe_short"],
+                    showlegend=False,
+                ))
+            fig.update_layout(title="Mean Best - 2nd Best Accuracy Gap",
+                              yaxis_title="Accuracy Gap",
+                              template="plotly_white")
             st.plotly_chart(fig, width="stretch")
-            st.caption("Smaller gaps mean the top two configs perform similarly, suggesting less sensitivity to config choice.")
+            st.caption("Lower bars indicate the pipeline is more robust to configuration choice. Error bars show ±1 SD across subjects.")
 
         # --- Config selection premium (B - M) box plot ---
-        st.subheader("Config Selection Premium (B - M)")
-        st.caption("How much does knowing the best config help? B(s,p) - M(s,p) per pipeline. A large premium means the pipeline depends heavily on picking the right config.")
+        st.subheader("Configuration Selection Premium (B - M)")
+        st.caption("How much does knowing the best configuration help? B(s,p) - M(s,p) per pipeline. A large premium means the pipeline depends heavily on picking the right configuration.")
         sp_copy = sp.copy()
         sp_copy["premium"] = sp_copy["B_acc"] - sp_copy["M_acc"]
         sp_filt = sp_copy[sp_copy["pipe_short"].isin(pipes)]
@@ -53,11 +68,11 @@ def render(store, dataset):
                           yaxis_title="B(s,p) - M(s,p)", showlegend=False,
                           template="plotly_white")
         st.plotly_chart(fig, width="stretch")
-        st.caption("Higher premium means picking the right config matters more for that pipeline.")
+        st.caption("Higher premium means picking the right configuration matters more for that pipeline.")
 
         # --- Ranking stability across metrics ---
         st.subheader("Ranking Stability Across Metrics")
-        st.caption("Does the pipeline ranking change when you switch from mean-over-configs to oracle-best? Highlighted cells show rank shifts of 2+ positions.")
+        st.caption("Does the pipeline ranking change when you switch from mean-over-configurations to oracle-best? Highlighted cells show rank shifts of 2+ positions.")
         metrics = ["M_acc", "B_acc", "G_gain", "H_helps"]
         rank_rows = []
         for m in metrics:
@@ -78,9 +93,9 @@ def render(store, dataset):
             st.caption("Consistent ranks across metrics indicate a robustly strong (or weak) pipeline.")
 
         # --- Config variance per pipeline ---
-        st.subheader("Config Variance per Pipeline")
-        st.caption("How sensitive is each pipeline to config choice? "
-                   "A pipeline with high within-subject config SD needs careful tuning; one with low SD works with most configs.")
+        st.subheader("Configuration Variance per Pipeline")
+        st.caption("How sensitive is each pipeline to configuration choice? "
+                   "A pipeline with high within-subject configuration SD needs careful tuning; one with low SD works with most configurations.")
 
         if not sp.empty:
             sp_filt = sp[sp["pipe_short"].isin(pipes)].copy()
@@ -97,12 +112,12 @@ def render(store, dataset):
                              points="all",
                              hover_data=["subject"])
                 fig.update_layout(
-                    yaxis_title="Within-Subject Config SD",
+                    yaxis_title="Within-Subject Configuration SD",
                     showlegend=False, template="plotly_white",
                 )
                 st.plotly_chart(fig, width="stretch")
                 st.caption("Each dot is one subject. The box shows the distribution across subjects. "
-                           "A pipeline with a high box = sensitive to config choice for many subjects.")
+                           "A pipeline with a high box = sensitive to configuration choice for many subjects.")
 
             # --- Heatmap: Subject x Pipeline, color = sd_acc ---
             with tab_hm:
@@ -125,8 +140,8 @@ def render(store, dataset):
                     coloraxis_colorbar_title="SD",
                 )
                 st.plotly_chart(fig, width="stretch")
-                st.caption("Red = high config sensitivity for that subject-pipeline pair. "
-                           "Yellow = low sensitivity (works with most configs). "
+                st.caption("Red = high configuration sensitivity for that subject-pipeline pair. "
+                           "Yellow = low sensitivity (works with most configurations). "
                            "Compare columns to see which pipeline is most stable overall.")
 
             # --- Summary bar: mean SD per pipeline ---
@@ -148,16 +163,16 @@ def render(store, dataset):
                         showlegend=False,
                     ))
                 fig.update_layout(
-                    yaxis_title="Mean Within-Subject Config SD",
+                    yaxis_title="Mean Within-Subject Configuration SD",
                     template="plotly_white",
                 )
                 st.plotly_chart(fig, width="stretch")
-                st.caption("Mean config SD across subjects, with error bars (+/-1 SD). "
-                           "Lower = more robust to config choice.")
+                st.caption("Mean configuration SD across subjects, with error bars (±1 SD). "
+                           "Lower = more robust to configuration choice.")
 
         # --- Stable configs table ---
-        st.subheader("Most Stable Configs (Lowest Cross-Subject SD)")
-        st.caption("Configs that work reliably across all subjects. Low SD means consistent performance regardless of subject.")
+        st.subheader("Most Stable Configurations (Lowest Cross-Subject SD)")
+        st.caption("Configurations that work reliably across all subjects. Low SD means consistent performance regardless of subject.")
         if not cfg.empty and "sd_acc" in cfg.columns:
             stable = cfg[cfg["n_subject"] >= 3].nsmallest(5, "sd_acc")
             display_cols = [c for c in ["pipe_short", "config_label", "mean_acc", "sd_acc", "n_subject"]
@@ -165,7 +180,7 @@ def render(store, dataset):
             st.dataframe(stable[display_cols].style.format(
                 {c: "{:.4f}" for c in display_cols if c in ("mean_acc", "sd_acc")}),
                 hide_index=True, width="stretch")
-            st.caption("Configs with at least 3 subjects, ranked by lowest standard deviation.")
+            st.caption("Configurations with at least 3 subjects, ranked by lowest standard deviation.")
 
     except Exception as e:
         st.error(f"Error rendering Stability page: {e}")
