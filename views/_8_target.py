@@ -52,7 +52,7 @@ def render(store, dataset):
                             text_auto=".3f", aspect="auto")
             fig.update_layout(title="Mean Accuracy per Target Session x Pipeline",
                               template="plotly_white")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
             st.caption("Each cell shows mean accuracy when that session is the target (test set).")
 
         # --- Grouped bar per target session ---
@@ -63,7 +63,7 @@ def render(store, dataset):
                      category_orders={"pipe_short": pipes})
         fig.update_layout(title="Accuracy by Target Session",
                           yaxis_title="Mean Accuracy", template="plotly_white")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
         st.caption("Grouped bars compare pipeline performance for each target session.")
 
         # --- Session difficulty ranking ---
@@ -73,7 +73,7 @@ def render(store, dataset):
         sess_diff.columns = [target_col, "mean_acc", "sd_acc", "n_folds"]
         sess_diff = sess_diff.sort_values("mean_acc", ascending=True)
         st.dataframe(sess_diff.style.format({"mean_acc": "{:.4f}", "sd_acc": "{:.4f}"}),
-                     hide_index=True, use_container_width=True)
+                     hide_index=True, width="stretch")
         st.caption("Sessions sorted by mean accuracy (hardest first). Hard sessions have lower mean accuracy.")
 
         # --- Pipeline x session interaction line chart ---
@@ -85,7 +85,7 @@ def render(store, dataset):
                           category_orders={"pipe_short": pipes})
             fig.update_layout(title="Pipeline Accuracy Across Target Sessions",
                               yaxis_title="Mean Accuracy", template="plotly_white")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
             st.caption("Lines crossing indicate pipelines that excel on different sessions, suggesting complementary strengths.")
 
     except Exception as e:

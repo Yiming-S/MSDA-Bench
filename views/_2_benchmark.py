@@ -105,7 +105,7 @@ def render(store, dataset):
         height=400,
         yaxis=dict(range=[max(0, agg['mean'].min()-0.1), min(1.0, agg['mean'].max()+0.05)])
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
     # --- Per-subject table ---
     st.subheader("Per-Subject Values")
@@ -120,7 +120,7 @@ def render(store, dataset):
     st.dataframe(pivot.style.format({c: "{:.4f}" for c in pivot.columns if c != 'Winner'})
                  .highlight_max(axis=1, subset=[c for c in pivot.columns if c != 'Winner'],
                                props=TABLE_HIGHLIGHT),
-                 use_container_width=True)
+                 width="stretch")
 
     # --- Summary statistics ---
     st.subheader("Summary Statistics")
@@ -141,7 +141,7 @@ def render(store, dataset):
         })
     stats_df = pd.DataFrame(stats_rows)
     st.dataframe(stats_df.style.format({c: "{:.4f}" for c in stats_df.columns if c not in ('Pipeline','n_subj')}),
-                 use_container_width=True)
+                 width="stretch")
 
     # --- Paired comparison ---
     if len(visible_pipes) >= 2:
@@ -195,7 +195,7 @@ def render(store, dataset):
                            text_auto='.4f',
                            aspect='auto')
             fig.update_layout(height=350)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
 
     # --- Winning configs (only for B metric) ---
     if col_name == 'B_acc':
@@ -219,7 +219,7 @@ def render(store, dataset):
 
         win_table = win_pivot.pivot(index='config_label', columns='pipe_short', values='subjects').fillna('---')
         win_table = win_table[[p for p in PIPE_ORDER if p in win_table.columns]]
-        st.dataframe(win_table, use_container_width=True)
+        st.dataframe(win_table, width="stretch")
 
     # --- Feature Contribution (always shown) ---
     st.subheader("Feature Contribution")
@@ -253,7 +253,7 @@ def render(store, dataset):
                     template='plotly_white', height=250,
                     coloraxis_colorbar_title='Acc',
                 )
-                st.plotly_chart(fig_hm, use_container_width=True)
+                st.plotly_chart(fig_hm, width="stretch")
                 st.caption("Heatmap amplifies small differences. Darker blue = higher accuracy. "
                            "Compare within each row (which pipeline uses this feature best) "
                            "and within each column (which feature this pipeline benefits from most).")
@@ -274,6 +274,6 @@ def render(store, dataset):
                     yaxis=dict(range=[y_min - y_pad, y_max + y_pad]),
                     template='plotly_white',
                 )
-                st.plotly_chart(fig_feat, use_container_width=True)
+                st.plotly_chart(fig_feat, width="stretch")
                 st.caption("Bar chart with zoomed y-axis to amplify differences. "
                            "Note: y-axis does NOT start at 0.")

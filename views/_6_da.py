@@ -39,7 +39,7 @@ def render(store, dataset):
                     text=[f"{row['mean']:.4f}"], textposition="outside"))
             fig.update_layout(title="Mean DA Gain (cvMeanAcc - baseline)",
                               yaxis_title="Gain", template="plotly_white")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
             st.caption("Positive gain means DA improves over baseline on average. Error bars = 1 SD across subjects.")
 
         # --- DA gain heatmap: config x pipeline ---
@@ -57,7 +57,7 @@ def render(store, dataset):
                                 color_continuous_midpoint=0, text_auto=".3f", aspect="auto")
                 fig.update_layout(title="Top 20 Configs: Mean DA Gain",
                                   template="plotly_white", height=max(400, len(top_cfgs) * 22))
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
                 st.caption("Cooler tones = positive gain (DA helps); warmer tones = negative gain (DA hurts). Diverging from zero.")
 
         # --- Violin distribution of per-subject DA gains ---
@@ -71,7 +71,7 @@ def render(store, dataset):
             fig.update_layout(title="Per-Subject DA Gain Distribution",
                               yaxis_title="G_gain", showlegend=False, template="plotly_white")
             fig.add_hline(y=0, line_dash="dash", line_color="#8EA1B5")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
             st.caption("Each point is one subject. Points below zero indicate DA hurt performance.")
 
         # --- Feature x DA interaction ---
@@ -85,7 +85,7 @@ def render(store, dataset):
             fig.update_layout(title="Mean Gain by Feature x DA Method",
                               yaxis_title="Mean Gain", template="plotly_white")
             fig.add_hline(y=0, line_dash="dash", line_color="#8EA1B5")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
             st.caption("Shows which feature-DA combinations yield positive or negative adaptation gains.")
 
         # --- Harm rate table ---
@@ -101,7 +101,7 @@ def render(store, dataset):
             harm = harm.sort_values("order")
             st.dataframe(harm[["pipe_short", "mean_helps", "harm_rate", "min_helps", "n_configs"]].style.format(
                 {"mean_helps": "{:.3f}", "harm_rate": "{:.3f}", "min_helps": "{:.3f}"}),
-                hide_index=True, use_container_width=True)
+                hide_index=True, width="stretch")
             st.caption("Harm rate = fraction of configs where DA reduces accuracy below baseline.")
 
     except Exception as e:
