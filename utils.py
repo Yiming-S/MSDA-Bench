@@ -50,6 +50,45 @@ ROLE_COLORS = {
     "not_used": "#94A3B8",
 }
 
+TABLE_HIGHLIGHT = "background-color: rgba(47, 111, 237, 0.14); color: #183A63; font-weight: 700;"
+
+COOL_LIGHT_SEQUENTIAL = [
+    [0.00, "#F7FAFD"],
+    [0.20, "#E6EEF8"],
+    [0.40, "#CCDDF4"],
+    [0.60, "#A8C0E8"],
+    [0.80, "#6F97DB"],
+    [1.00, "#2F6FED"],
+]
+
+COOL_LIGHT_SEQUENTIAL_REVERSED = list(reversed(COOL_LIGHT_SEQUENTIAL))
+
+COOL_LIGHT_INTENSITY = [
+    [0.00, "#F7FAFD"],
+    [0.25, "#E7EEF7"],
+    [0.50, "#CCD7E6"],
+    [0.75, "#92A9C6"],
+    [1.00, "#4D678D"],
+]
+
+COOL_LIGHT_DIVERGING = [
+    [0.00, "#C97A66"],
+    [0.20, "#E8BFB4"],
+    [0.48, "#F8F9FB"],
+    [0.52, "#F8F9FB"],
+    [0.80, "#ABC3EA"],
+    [1.00, "#2F6FED"],
+]
+
+COOL_LIGHT_COMPLETION = [
+    [0.00, "#E5ECF3"],
+    [0.49, "#E5ECF3"],
+    [0.50, "#7EA2D9"],
+    [1.00, "#7EA2D9"],
+]
+
+COOL_LIGHT_PANDAS_CMAP = "Blues"
+
 # ---------------------------------------------------------------------------
 # Metric definitions
 # ---------------------------------------------------------------------------
