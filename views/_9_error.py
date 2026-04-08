@@ -28,9 +28,12 @@ def render(store, dataset):
             st.subheader("Per-Class Accuracy")
             st.caption("Accuracy broken down by class (left hand vs right hand). A large gap reveals systematic class bias in the classifier.")
             # Sidebar: select subject and pipeline for detailed view
-            sel_subj = st.sidebar.selectbox("Subject (Error)", subjects,
-                                             format_func=lambda s: f"S{s}", key="err_subj")
-            sel_pipe = st.sidebar.selectbox("Pipeline (Error)", pipes, key="err_pipe")
+            col_subj, col_pipe = st.columns(2)
+            with col_subj:
+                sel_subj = st.selectbox("Subject", subjects,
+                                        format_func=lambda s: f"S{s}", key="err_subj")
+            with col_pipe:
+                sel_pipe = st.selectbox("Pipeline", pipes, key="err_pipe")
 
             # Expand y_true/y_pred arrays into flat lists per pipeline
             # Each row has y_true=array, y_pred=array — need to iterate rows
@@ -100,8 +103,8 @@ def render(store, dataset):
                 st.info("No data for selected subject/pipeline.")
         else:
             st.info("Prediction columns (y_true, y_pred) not found. Showing accuracy-based analysis.")
-            sel_subj = st.sidebar.selectbox("Subject (Error)", subjects,
-                                             format_func=lambda s: f"S{s}", key="err_subj")
+            sel_subj = st.selectbox("Subject", subjects,
+                                    format_func=lambda s: f"S{s}", key="err_subj")
 
         # --- Hard sessions table ---
         st.subheader("Hard Sessions")

@@ -86,8 +86,7 @@ def render(store, dataset):
             st.warning("No mechanism-based pipelines (BDP/MMP) found in data.")
             return
 
-        # Pipeline selector in sidebar (shared by both tabs)
-        pipe = st.sidebar.selectbox("Pipeline (Mechanism)", avail_pipes, key="mech_pipe")
+        pipe = st.selectbox("Pipeline", avail_pipes, key="mech_pipe")
 
         # ── Tabs ───────────────────────────────────────────────────────
         tab_util, tab_roles = st.tabs(["Session Utilization", "Session Roles"])

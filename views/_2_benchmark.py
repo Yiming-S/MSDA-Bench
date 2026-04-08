@@ -38,21 +38,21 @@ def render(store, dataset):
             'A value of 0.6 means DA helps in 60% of configurations for that subject.',
     }
 
-    col_ctrl, col_desc = st.columns([1, 2])
-    with col_ctrl:
+    col_subj, col_pipe, col_metric = st.columns([1, 2, 2])
+    with col_subj:
+        subject_mode = st.radio("Subject mode", ["Matched only", "All available"])
+    with col_pipe:
+        visible_pipes = st.multiselect("Pipelines", all_pipes, default=all_pipes)
+    with col_metric:
         metric = st.selectbox("Metric", list(metric_options.keys()))
-    with col_desc:
-        st.info(metric_descriptions[metric])
 
-    col_name = metric_options[metric]
-
-    # Sidebar controls (non-metric)
-    subject_mode = st.sidebar.radio("Subject mode", ["Matched only", "All available"])
-
-    visible_pipes = st.sidebar.multiselect("Pipelines", all_pipes, default=all_pipes)
     if not visible_pipes:
         st.warning("Select at least one pipeline.")
         return
+
+    st.info(metric_descriptions[metric])
+
+    col_name = metric_options[metric]
 
     # Determine subjects
     if subject_mode == "Matched only":
@@ -60,10 +60,10 @@ def render(store, dataset):
         if not subjects:
             st.warning("No subjects have all selected pipelines completed.")
             return
-        st.info(f"Matched comparison on {len(subjects)} subjects: {', '.join(f'S{s}' for s in subjects)}")
+        st.caption(f"Matched comparison on {len(subjects)} subjects: {', '.join(f'S{s}' for s in subjects)}")
     else:
         subjects = sorted(sp['subject'].unique())
-        st.warning("Unmatched comparison -- pipeline sample sizes may differ.")
+        st.warning("Unmatched comparison — pipeline sample sizes may differ.")
 
     # Filter data
     mask = sp['subject'].isin(subjects) & sp['pipe_short'].isin(visible_pipes)
@@ -82,22 +82,54 @@ def render(store, dataset):
 
     fig = go.Figure()
     for _, row in agg.iterrows():
-        fig.add_trace(go.Bar(
-            name=row['pipe_short'],
-            x=[row['pipe_short']],
-            y=[row['mean']],
-            error_y=dict(type='data', array=[row['std']], visible=True),
-            marker_color=PIPE_COLORS.get(row['pipe_short'], '#888'),
-            text=[f"{row['mean']:.4f}"],
-            textposition='outside'
+        p = row['pipe_short']
+        color = PIPE_COLORS.get(p, '#888')
+        ci = 1.96 * row['std'] / np.sqrt(row['count']) if row['count'] > 1 else 0
+        # CI line
+        fig.add_trace(go.Scatter(
+            x=[row['mean'] - ci, row['mean'] + ci],
+            y=[p, p],
+            mode='lines',
+            line=dict(color=color, width=3),
+            showlegend=False,
+            hoverinfo='skip',
         ))
+        # IQR whiskers
+        vals = data[data['pipe_short'] == p][col_name].dropna().values
+        if len(vals) >= 4:
+            q25, q75 = np.percentile(vals, [25, 75])
+            fig.add_trace(go.Scatter(
+                x=[q25, q75],
+                y=[p, p],
+                mode='lines',
+                line=dict(color=color, width=8),
+                opacity=0.3,
+                showlegend=False,
+                hoverinfo='skip',
+            ))
+        # Mean dot
+        fig.add_trace(go.Scatter(
+            x=[row['mean']],
+            y=[p],
+            mode='markers+text',
+            marker=dict(color=color, size=12, line=dict(color='white', width=1.5)),
+            text=[f"{row['mean']:.4f}"],
+            textposition='middle right',
+            textfont=dict(size=11),
+            showlegend=False,
+            hovertemplate=f"<b>{p}</b><br>Mean: {row['mean']:.4f}<br>SD: {row['std']:.4f}<br>n={int(row['count'])}<extra></extra>",
+        ))
+
+    x_min = float(agg['mean'].min() - agg['std'].max() * 1.5)
+    x_max = float(agg['mean'].max() + agg['std'].max() * 1.5)
     fig.update_layout(
-        yaxis_title=metric.split(' ')[0],
-        showlegend=False,
-        height=400,
-        yaxis=dict(range=[max(0, agg['mean'].min()-0.1), min(1.0, agg['mean'].max()+0.05)])
+        xaxis_title=metric.split('—')[0].strip(),
+        height=max(250, len(agg) * 55),
+        xaxis=dict(range=[x_min, x_max]),
+        yaxis=dict(categoryorder='array', categoryarray=list(reversed(agg['pipe_short'].tolist()))),
     )
     st.plotly_chart(fig, width="stretch")
+    st.caption("Dot = mean across subjects. Thick band = IQR (P25–P75). Thin line = 95% CI of the mean.")
 
     # --- Per-subject table ---
     st.subheader("Per-Subject Values")

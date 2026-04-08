@@ -51,14 +51,16 @@ def render(store, dataset):
         for _, row in time_agg.iterrows():
             fig.add_trace(go.Bar(
                 x=[row["pipe_short"]], y=[row["mean"]],
-                error_y=dict(type="data", array=[row["std"]], visible=True),
                 marker_color=PIPE_COLORS.get(row["pipe_short"], "#888"),
                 name=row["pipe_short"], showlegend=False,
                 text=[f"{row['mean']:.1f}s"], textposition="outside"))
-        fig.update_layout(title="Mean Elapsed Time per Pipeline",
-                          yaxis_title="Seconds", template="plotly_white")
+        fig.update_layout(title="Mean Elapsed Time per Pipeline (Log Scale)",
+                          yaxis_title="Seconds (log scale)",
+                          yaxis_type="log",
+                          template="plotly_white")
         st.plotly_chart(fig, width="stretch")
-        st.caption("Average computation time per fold/configuration. Error bars = 1 SD.")
+        st.caption("Log-scale comparison of mean computation time per fold. "
+                   "Logarithmic axis reveals relative differences between fast and slow pipelines that a linear scale would hide.")
 
         # --- Accuracy-time scatter ---
         st.subheader("Accuracy vs Time Tradeoff")

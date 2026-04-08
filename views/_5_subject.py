@@ -19,7 +19,7 @@ def render(store, dataset):
             return
 
         subjects = sorted(sdf["subject"].unique())
-        subj = st.sidebar.selectbox("Subject", subjects, format_func=lambda s: f"S{s}")
+        subj = st.selectbox("Subject", subjects, format_func=lambda s: f"S{s}")
 
         pipes = [p for p in PIPE_ORDER if p in sdf["pipe_short"].unique()]
         subj_data = sdf[sdf["subject"] == subj]
