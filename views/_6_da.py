@@ -5,11 +5,11 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
-from utils import PIPE_ORDER, PIPE_COLORS
+from utils import PIPE_ORDER, PIPE_COLORS, COOL_LIGHT_DIVERGING
 
 
 def render(store, dataset):
-    st.header("6. DA (Domain Adaptation) Analysis")
+    st.header("6. Adaptation Effects")
     st.markdown("Does domain adaptation actually help? Break down DA gain by pipeline, feature, and DA method to find what works and what harms.")
     try:
         sdf = store.summary_df
@@ -44,7 +44,7 @@ def render(store, dataset):
 
         # --- DA gain heatmap: config x pipeline ---
         st.subheader("DA Gain Heatmap (Config x Pipeline)")
-        st.caption("Per-config DA gain matrix. Red cells = DA hurts this config, green = DA helps. Identifies dangerous feature+DA combinations (e.g., logvar+coral).")
+        st.caption("Per-config DA gain matrix. Warmer tones indicate DA hurts this config; cooler tones indicate DA helps. Identifies dangerous feature+DA combinations (e.g., logvar+coral).")
         if not cfg.empty and "mean_gain" in cfg.columns:
             top_cfgs = cfg.groupby("config_label")["mean_gain"].mean().nlargest(20).index
             filt = cfg[cfg["config_label"].isin(top_cfgs) & cfg["pipe_short"].isin(pipes)]
@@ -53,12 +53,12 @@ def render(store, dataset):
             pivot = pivot.reindex(columns=[p for p in PIPE_ORDER if p in pivot.columns])
             if not pivot.empty:
                 fig = px.imshow(pivot.values, x=pivot.columns.tolist(),
-                                y=pivot.index.tolist(), color_continuous_scale="RdBu",
+                                y=pivot.index.tolist(), color_continuous_scale=COOL_LIGHT_DIVERGING,
                                 color_continuous_midpoint=0, text_auto=".3f", aspect="auto")
                 fig.update_layout(title="Top 20 Configs: Mean DA Gain",
                                   template="plotly_white", height=max(400, len(top_cfgs) * 22))
                 st.plotly_chart(fig, use_container_width=True)
-                st.caption("Blue = positive gain (DA helps); red = negative (DA hurts). Diverging from zero.")
+                st.caption("Cooler tones = positive gain (DA helps); warmer tones = negative gain (DA hurts). Diverging from zero.")
 
         # --- Violin distribution of per-subject DA gains ---
         st.subheader("DA Gain Distribution")
@@ -70,7 +70,7 @@ def render(store, dataset):
                             category_orders={"pipe_short": pipes})
             fig.update_layout(title="Per-Subject DA Gain Distribution",
                               yaxis_title="G_gain", showlegend=False, template="plotly_white")
-            fig.add_hline(y=0, line_dash="dash", line_color="gray")
+            fig.add_hline(y=0, line_dash="dash", line_color="#8EA1B5")
             st.plotly_chart(fig, use_container_width=True)
             st.caption("Each point is one subject. Points below zero indicate DA hurt performance.")
 
@@ -84,7 +84,7 @@ def render(store, dataset):
             fig = px.bar(feat_da, x="feature", y="gain", color="da", barmode="group")
             fig.update_layout(title="Mean Gain by Feature x DA Method",
                               yaxis_title="Mean Gain", template="plotly_white")
-            fig.add_hline(y=0, line_dash="dash", line_color="gray")
+            fig.add_hline(y=0, line_dash="dash", line_color="#8EA1B5")
             st.plotly_chart(fig, use_container_width=True)
             st.caption("Shows which feature-DA combinations yield positive or negative adaptation gains.")
 

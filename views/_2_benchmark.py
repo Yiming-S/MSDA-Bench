@@ -3,10 +3,18 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
-from utils import PIPE_ORDER, PIPE_COLORS, format_acc, make_heatmap
+from utils import (
+    PIPE_ORDER,
+    PIPE_COLORS,
+    COOL_LIGHT_DIVERGING,
+    COOL_LIGHT_SEQUENTIAL,
+    TABLE_HIGHLIGHT,
+    format_acc,
+    make_heatmap,
+)
 
 def render(store, dataset):
-    st.header("2. Pipeline Benchmark")
+    st.header("2. Pipeline Comparison")
     st.markdown("Compare all pipelines head-to-head on matched subjects. Switch between metrics (mean-over-configs vs oracle best) to see how rankings change.")
 
     sp = store.derived['subject_pipeline']
@@ -101,7 +109,7 @@ def render(store, dataset):
 
     # --- Per-subject table ---
     st.subheader("Per-Subject Values")
-    st.caption("Each row is one subject, each column is one pipeline. The green cell marks the winner for that subject. Use this to see which subjects drive the overall ranking.")
+    st.caption("Each row is one subject, each column is one pipeline. The accent-tinted cell marks the winner for that subject. Use this to see which subjects drive the overall ranking.")
     pivot = data.pivot(index='subject', columns='pipe_short', values=col_name)
     pivot = pivot[[p for p in PIPE_ORDER if p in pivot.columns]]
     pivot.index = [f"S{s}" for s in pivot.index]
@@ -111,7 +119,7 @@ def render(store, dataset):
 
     st.dataframe(pivot.style.format({c: "{:.4f}" for c in pivot.columns if c != 'Winner'})
                  .highlight_max(axis=1, subset=[c for c in pivot.columns if c != 'Winner'],
-                               props='background-color: #90EE90;'),
+                               props=TABLE_HIGHLIGHT),
                  use_container_width=True)
 
     # --- Summary statistics ---
@@ -138,7 +146,7 @@ def render(store, dataset):
     # --- Paired comparison ---
     if len(visible_pipes) >= 2:
         st.subheader("Paired Comparison")
-        st.caption("Head-to-head: for each pair of pipelines, count how many subjects one beats the other. The delta heatmap shows the average accuracy difference (green = row is better).")
+        st.caption("Head-to-head: for each pair of pipelines, count how many subjects one beats the other. The delta heatmap shows the average accuracy difference, with cooler tones favoring the row pipeline and warmer tones favoring the column pipeline.")
 
         # Build W/T/L and delta matrices
         wtl_data = []
@@ -182,7 +190,7 @@ def render(store, dataset):
 
             fig = px.imshow(delta_df.values,
                            x=visible_pipes, y=visible_pipes,
-                           color_continuous_scale='RdYlGn',
+                           color_continuous_scale=COOL_LIGHT_DIVERGING,
                            zmin=-0.02, zmax=0.02,
                            text_auto='.4f',
                            aspect='auto')
@@ -235,7 +243,7 @@ def render(store, dataset):
                     pivot_feat.values,
                     x=pivot_feat.columns.tolist(),
                     y=pivot_feat.index.tolist(),
-                    color_continuous_scale='RdYlGn',
+                    color_continuous_scale=COOL_LIGHT_SEQUENTIAL,
                     text_auto='.4f',
                     aspect='auto',
                     zmin=float(pivot_feat.values.min()) - 0.01,
@@ -246,7 +254,7 @@ def render(store, dataset):
                     coloraxis_colorbar_title='Acc',
                 )
                 st.plotly_chart(fig_hm, use_container_width=True)
-                st.caption("Heatmap amplifies small differences. Green = higher accuracy. "
+                st.caption("Heatmap amplifies small differences. Darker blue = higher accuracy. "
                            "Compare within each row (which pipeline uses this feature best) "
                            "and within each column (which feature this pipeline benefits from most).")
 

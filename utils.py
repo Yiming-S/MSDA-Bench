@@ -5,6 +5,7 @@ Utility constants and helper functions for the EEG Streamlit dashboard.
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
+import plotly.io as pio
 
 # ---------------------------------------------------------------------------
 # Pipeline name mappings
@@ -31,24 +32,152 @@ PIPE_ORDER = ["MAP", "DWP", "MMP_mta", "MMP_moe", "BDP_fb", "BDP_bf"]
 # ---------------------------------------------------------------------------
 
 PIPE_COLORS = {
-    "MAP": "#3B82F6",       # blue
-    "DWP": "#F59E0B",       # amber
-    "MMP_mta": "#10B981",   # emerald
-    "MMP_moe": "#EF4444",   # red
-    "BDP_fb": "#8B5CF6",    # violet
-    "BDP_bf": "#F43F5E",    # rose
+    "MAP": "#2F6FED",       # cobalt
+    "DWP": "#0F8C94",       # teal
+    "MMP_mta": "#4C8B6F",   # sea green
+    "MMP_moe": "#7B7DD6",   # muted indigo
+    "BDP_fb": "#5E7FA6",    # steel blue
+    "BDP_bf": "#AF7287",    # dusty rose
 }
 
 ROLE_COLORS = {
-    "bridge": "#3B82F6",
-    "far": "#F59E0B",
-    "dropped": "#EF4444",
-    "target": "#10B981",
-    "s_star": "#8B5CF6",
-    "selected": "#06B6D4",
-    "overlap_only": "#EAB308",
-    "not_used": "#94A3B8",
+    "bridge": "#4B7FDC",
+    "far": "#9AA9BC",
+    "dropped": "#C97A66",
+    "target": "#2E8B7D",
+    "s_star": "#2F6FED",
+    "selected": "#5A95E6",
+    "overlap_only": "#BAC7D8",
+    "not_used": "#D8E1EC",
 }
+
+PLOTLY_TEMPLATE = "cool_light_lab"
+TABLE_HIGHLIGHT = "background-color: rgba(47, 111, 237, 0.14); color: #183A63; font-weight: 700;"
+
+COOL_LIGHT_SEQUENTIAL = [
+    [0.00, "#F7FAFD"],
+    [0.20, "#E6EEF8"],
+    [0.40, "#CCDDF4"],
+    [0.60, "#A8C0E8"],
+    [0.80, "#6F97DB"],
+    [1.00, "#2F6FED"],
+]
+
+COOL_LIGHT_SEQUENTIAL_REVERSED = list(reversed(COOL_LIGHT_SEQUENTIAL))
+
+COOL_LIGHT_INTENSITY = [
+    [0.00, "#F7FAFD"],
+    [0.25, "#E7EEF7"],
+    [0.50, "#CCD7E6"],
+    [0.75, "#92A9C6"],
+    [1.00, "#4D678D"],
+]
+
+COOL_LIGHT_DIVERGING = [
+    [0.00, "#C97A66"],
+    [0.20, "#E8BFB4"],
+    [0.48, "#F8F9FB"],
+    [0.52, "#F8F9FB"],
+    [0.80, "#ABC3EA"],
+    [1.00, "#2F6FED"],
+]
+
+COOL_LIGHT_COMPLETION = [
+    [0.00, "#E5ECF3"],
+    [0.49, "#E5ECF3"],
+    [0.50, "#7EA2D9"],
+    [1.00, "#7EA2D9"],
+]
+
+COOL_LIGHT_PANDAS_CMAP = "Blues"
+
+
+def register_plotly_template():
+    """Register the Cool Light Lab Plotly template and make it the default."""
+    if PLOTLY_TEMPLATE in pio.templates:
+        pio.templates.default = PLOTLY_TEMPLATE
+        # Preserve existing page code that still passes template="plotly_white".
+        pio.templates["plotly_white"] = pio.templates[PLOTLY_TEMPLATE]
+        return
+
+    template = go.layout.Template()
+    template.layout = go.Layout(
+        font=dict(
+            family="Avenir Next, Segoe UI, Helvetica Neue, Arial, sans-serif",
+            size=14,
+            color="#132238",
+        ),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        colorway=list(PIPE_COLORS.values()),
+        title=dict(
+            x=0.02,
+            xanchor="left",
+            font=dict(size=21, color="#132238"),
+        ),
+        margin=dict(l=16, r=16, t=56, b=16),
+        hoverlabel=dict(
+            bgcolor="#FFFFFF",
+            bordercolor="#D6E2F0",
+            font=dict(color="#132238", size=12),
+        ),
+        legend=dict(
+            bgcolor="rgba(255,255,255,0.82)",
+            bordercolor="#D6E2F0",
+            borderwidth=1,
+            font=dict(size=12, color="#40556E"),
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1.0,
+        ),
+        xaxis=dict(
+            showgrid=False,
+            zeroline=False,
+            showline=True,
+            linecolor="#C8D5E4",
+            tickcolor="#C8D5E4",
+            ticks="outside",
+            title_font=dict(color="#40556E"),
+        ),
+        yaxis=dict(
+            showgrid=True,
+            gridcolor="#D7E0EA",
+            gridwidth=1,
+            zeroline=False,
+            showline=True,
+            linecolor="#C8D5E4",
+            tickcolor="#C8D5E4",
+            ticks="outside",
+            title_font=dict(color="#40556E"),
+        ),
+        coloraxis=dict(
+            colorbar=dict(
+                outlinewidth=0,
+                tickfont=dict(size=11, color="#40556E"),
+                titlefont=dict(size=12, color="#40556E"),
+            )
+        ),
+    )
+    template.data.bar = [
+        go.Bar(marker_line_width=0, opacity=0.92),
+    ]
+    template.data.box = [
+        go.Box(marker_opacity=0.8, line_width=1.4),
+    ]
+    template.data.scatter = [
+        go.Scatter(marker=dict(line=dict(width=0.8, color="rgba(255,255,255,0.85)"))),
+    ]
+    template.data.heatmap = [
+        go.Heatmap(colorbar=dict(outlinewidth=0)),
+    ]
+
+    pio.templates[PLOTLY_TEMPLATE] = template
+    pio.templates.default = PLOTLY_TEMPLATE
+    # Alias the house style onto plotly_white so existing update_layout calls
+    # adopt the same look without page-by-page template churn.
+    pio.templates["plotly_white"] = template
 
 # ---------------------------------------------------------------------------
 # Metric definitions
@@ -94,7 +223,7 @@ def highlight_winner(s, props=""):
         A row from a DataFrame (applied via ``Styler.apply(..., axis=1)``).
     props : str
         CSS property string applied to the winning cell,
-        e.g. ``'background-color: #d4edda'``.
+        e.g. ``'background-color: rgba(47, 111, 237, 0.14)'``.
 
     Returns
     -------
@@ -102,7 +231,7 @@ def highlight_winner(s, props=""):
         A list of CSS strings, one per cell.
     """
     if props == "":
-        props = "background-color: #d4edda; font-weight: bold"
+        props = TABLE_HIGHLIGHT
     numeric = pd.to_numeric(s, errors="coerce")
     is_max = numeric == numeric.max()
     return [props if v else "" for v in is_max]
@@ -204,14 +333,14 @@ def make_bar_with_error(data_df, x_col, y_col, error_col, color_col,
         title=title,
         yaxis_title=yaxis_title,
         xaxis_title="",
-        template="plotly_white",
+        template=PLOTLY_TEMPLATE,
         bargap=0.3,
     )
     return fig
 
 
 def make_heatmap(z, x_labels, y_labels, title,
-                 colorscale="RdYlGn", zmin=None, zmax=None,
+                 colorscale=COOL_LIGHT_SEQUENTIAL, zmin=None, zmax=None,
                  text_auto=True):
     """Create a Plotly heatmap figure.
 
@@ -255,7 +384,7 @@ def make_heatmap(z, x_labels, y_labels, title,
 
     fig.update_layout(
         title=title,
-        template="plotly_white",
+        template=PLOTLY_TEMPLATE,
         xaxis=dict(side="bottom"),
     )
     return fig

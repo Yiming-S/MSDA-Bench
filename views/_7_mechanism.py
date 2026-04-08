@@ -5,7 +5,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
-from utils import PIPE_ORDER, PIPE_COLORS, ROLE_COLORS
+from utils import PIPE_ORDER, PIPE_COLORS, ROLE_COLORS, COOL_LIGHT_SEQUENTIAL
 
 
 # ── Lazy utilization computation (cached) ──────────────────────────────────
@@ -69,7 +69,7 @@ def compute_utilization(_store, dataset):
 # ── Main render ────────────────────────────────────────────────────────────
 
 def render(store, dataset):
-    st.header("7. Mechanism Explorer")
+    st.header("7. Session Usage Mechanisms")
     st.markdown("Visualize HOW each pipeline uses sessions. "
                 "See BDP bridge/far assignments, MMP source selection, and DWP distance weights fold by fold.")
     try:
@@ -194,8 +194,8 @@ def render(store, dataset):
                     st.subheader("Subject x Pipeline Utilization Heatmap")
                     st.caption(
                         "Color encodes mean utilization ratio per subject x pipeline. "
-                        "Green/yellow = high utilization (uses most sessions). "
-                        "Red = low utilization (aggressive session filtering)."
+                        "Darker blue = high utilization (uses most sessions). "
+                        "Lighter cells = low utilization (aggressive session filtering)."
                     )
 
                     pivot = filt.pivot_table(
@@ -209,7 +209,7 @@ def render(store, dataset):
                         pivot.values,
                         x=pivot.columns.tolist(),
                         y=pivot.index.tolist(),
-                        color_continuous_scale="YlOrRd_r",
+                        color_continuous_scale=COOL_LIGHT_SEQUENTIAL,
                         zmin=0, zmax=1,
                         text_auto=".0%",
                         aspect="auto",

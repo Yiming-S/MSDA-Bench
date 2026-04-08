@@ -4,11 +4,11 @@ import streamlit as st
 import plotly.express as px
 import pandas as pd
 import numpy as np
-from utils import PIPE_ORDER, PIPE_COLORS
+from utils import PIPE_ORDER, PIPE_COLORS, COOL_LIGHT_SEQUENTIAL
 
 
 def render(store, dataset):
-    st.header("4. Config Explorer")
+    st.header("4. Configuration Effects")
     st.markdown("Explore all 24 feature/classifier/DA combinations. Find which configs are universally good and which are situationally useful.")
     try:
         cfg = store.derived["config_agg"]
@@ -55,7 +55,7 @@ def render(store, dataset):
         fig = px.imshow(pivot.values,
                         x=pivot.columns.tolist(),
                         y=pivot.index.tolist(),
-                        color_continuous_scale="RdYlGn",
+                        color_continuous_scale=COOL_LIGHT_SEQUENTIAL,
                         text_auto=".3f", aspect="auto",
                         zmin=pivot.values[np.isfinite(pivot.values)].min() - 0.02 if np.any(np.isfinite(pivot.values)) else 0.5,
                         zmax=pivot.values[np.isfinite(pivot.values)].max() + 0.02 if np.any(np.isfinite(pivot.values)) else 1.0)

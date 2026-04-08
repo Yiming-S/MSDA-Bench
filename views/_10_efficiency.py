@@ -9,7 +9,7 @@ from utils import PIPE_ORDER, PIPE_COLORS
 
 
 def render(store, dataset):
-    st.header("10. Efficiency & Progress")
+    st.header("10. Runtime & Efficiency")
     st.markdown("How long does each pipeline take, and is the extra computation worth it? Find the best accuracy-to-time tradeoff.")
     try:
         ddf = store.detail_df

@@ -5,11 +5,11 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
-from utils import PIPE_ORDER, PIPE_COLORS
+from utils import PIPE_ORDER, PIPE_COLORS, COOL_LIGHT_SEQUENTIAL
 
 
 def render(store, dataset):
-    st.header("8. Target Session Analysis")
+    st.header("8. Target Session Difficulty")
     st.markdown("Which target sessions are hard to predict? See if early sessions (fewer trials) are systematically harder and whether pipelines differ in session-level strengths.")
     try:
         ddf = store.detail_df
@@ -40,7 +40,7 @@ def render(store, dataset):
 
         # --- Accuracy by target session heatmap ---
         st.subheader("Accuracy by Target Session")
-        st.caption("Heatmap of mean accuracy when each session is used as the prediction target. Dark cells = easy sessions, light cells = hard sessions.")
+        st.caption("Heatmap of mean accuracy when each session is used as the prediction target. Darker blue cells = easier sessions, lighter cells = harder sessions.")
         pivot = target_acc.pivot_table(index=target_col, columns="pipe_short",
                                        values=acc_col, aggfunc="mean")
         pivot = pivot.reindex(columns=[p for p in PIPE_ORDER if p in pivot.columns])
@@ -48,7 +48,7 @@ def render(store, dataset):
             fig = px.imshow(pivot.values,
                             x=pivot.columns.tolist(),
                             y=[str(s) for s in pivot.index.tolist()],
-                            color_continuous_scale="RdYlGn",
+                            color_continuous_scale=COOL_LIGHT_SEQUENTIAL,
                             text_auto=".3f", aspect="auto")
             fig.update_layout(title="Mean Accuracy per Target Session x Pipeline",
                               template="plotly_white")

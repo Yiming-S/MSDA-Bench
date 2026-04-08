@@ -9,7 +9,7 @@ from utils import PIPE_ORDER, PIPE_COLORS
 
 
 def render(store, dataset):
-    st.header("9. Prediction Error Analysis")
+    st.header("9. Error Analysis")
     st.markdown("Go beyond accuracy numbers. See which classes are harder, where classifiers disagree, and which subjects/sessions are universally difficult.")
     try:
         ddf = store.detail_df

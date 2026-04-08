@@ -5,11 +5,11 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
-from utils import PIPE_ORDER, PIPE_COLORS
+from utils import PIPE_ORDER, PIPE_COLORS, COOL_LIGHT_INTENSITY, COOL_LIGHT_SEQUENTIAL_REVERSED
 
 
 def render(store, dataset):
-    st.header("3. Stability & Sensitivity")
+    st.header("3. Selection Sensitivity")
     st.markdown("How robust are the results? Are pipeline rankings fragile, and how much does picking the right config matter?")
     try:
         sdf = store.summary_df
@@ -72,10 +72,10 @@ def render(store, dataset):
             pivot = pivot.reindex([p for p in PIPE_ORDER if p in pivot.index])
             fig = px.imshow(pivot.values, x=pivot.columns.tolist(),
                             y=pivot.index.tolist(), text_auto=".1f",
-                            color_continuous_scale="YlOrRd", aspect="auto")
+                            color_continuous_scale=COOL_LIGHT_SEQUENTIAL_REVERSED, aspect="auto")
             fig.update_layout(title="Pipeline Rank by Metric (1=best)", template="plotly_white")
             st.plotly_chart(fig, use_container_width=True)
-            st.caption("Consistent ranks across metrics indicate a robustly strong (or weak) pipeline.")
+            st.caption("Darker cells indicate stronger ranks. Consistent patterns across metrics indicate a robustly strong (or weak) pipeline.")
 
         # --- Config variance per pipeline ---
         st.subheader("Config Variance per Pipeline")
@@ -114,7 +114,7 @@ def render(store, dataset):
                     pivot_sd.values,
                     x=pivot_sd.columns.tolist(),
                     y=pivot_sd.index.tolist(),
-                    color_continuous_scale="YlOrRd",
+                    color_continuous_scale=COOL_LIGHT_INTENSITY,
                     text_auto=".3f", aspect="auto",
                     zmin=float(pivot_sd.values[np.isfinite(pivot_sd.values)].min()) if np.any(np.isfinite(pivot_sd.values)) else 0,
                     zmax=float(pivot_sd.values[np.isfinite(pivot_sd.values)].max()) if np.any(np.isfinite(pivot_sd.values)) else 0.2,
@@ -125,8 +125,8 @@ def render(store, dataset):
                     coloraxis_colorbar_title="SD",
                 )
                 st.plotly_chart(fig, use_container_width=True)
-                st.caption("Red = high config sensitivity for that subject-pipeline pair. "
-                           "Yellow = low sensitivity (works with most configs). "
+                st.caption("Deeper tones indicate higher config sensitivity for that subject-pipeline pair. "
+                           "Lighter cells indicate lower sensitivity (works with most configs). "
                            "Compare columns to see which pipeline is most stable overall.")
 
             # --- Summary bar: mean SD per pipeline ---
