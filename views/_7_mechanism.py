@@ -403,7 +403,7 @@ def _render_session_roles(store, dataset, subjects, pipe, avail_pipes):
             bridge_counts = roles_df[roles_df[role_col] == "bridge"].groupby(fold_col).size().reset_index(name="n_bridge")
             if not bridge_counts.empty:
                 fig = px.histogram(bridge_counts, x="n_bridge",
-                                   nbins=max(bridge_counts["n_bridge"].max(), 5))
+                                   nbins=int(max(bridge_counts["n_bridge"].max(), 5)))
                 fig.update_layout(title="Bridge Sessions per Fold", xaxis_title="N Bridge",
                                   yaxis_title="Count", template="plotly_white")
                 st.plotly_chart(fig, width="stretch")
