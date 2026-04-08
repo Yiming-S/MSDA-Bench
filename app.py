@@ -1,6 +1,6 @@
 import streamlit as st
 import os
-from utils import register_plotly_template
+import utils as dashboard_utils
 
 st.set_page_config(
     page_title="MSDA-Bench",
@@ -9,7 +9,9 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-register_plotly_template()
+register_plotly_template = getattr(dashboard_utils, "register_plotly_template", None)
+if callable(register_plotly_template):
+    register_plotly_template()
 
 st.markdown('''
 <style>
