@@ -5,7 +5,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
-from utils import PIPE_ORDER, PIPE_COLORS
+from utils import PIPE_ORDER, PIPE_COLORS, COOL_LIGHT_SEQUENTIAL
 
 
 def render(store, dataset):
@@ -21,10 +21,10 @@ def render(store, dataset):
 
         pipes = [p for p in PIPE_ORDER if p in sp["pipe_short"].unique()]
 
-        # --- Best vs 2nd-best gap bar chart ---
-        st.subheader("Best vs 2nd-Best Configuration Gap")
-        st.caption("Mean accuracy gap between the best and second-best configuration for each pipeline, averaged across subjects. "
-                   "A small gap means the top two configurations perform similarly, so the pipeline is not sensitive to configuration choice.")
+        # --- Top-2 Configuration Separation ---
+        st.subheader("Top-2 Configuration Separation")
+        st.caption("How often are the top two configurations nearly tied? "
+                   "The ECDF shows, for each pipeline, what fraction of subjects have a gap ≤ x between the best and second-best configuration accuracy.")
         gaps = []
         for (subj, pipe), grp in sdf.groupby(["subject", "pipe_short"]):
             accs = grp["cvMeanAcc"].dropna().sort_values(ascending=False)
@@ -33,27 +33,58 @@ def render(store, dataset):
                              "gap": accs.iloc[0] - accs.iloc[1]})
         if gaps:
             gap_df = pd.DataFrame(gaps)
-            gap_agg = gap_df.groupby("pipe_short")["gap"].agg(["mean", "std"]).reset_index()
-            gap_agg["order"] = gap_agg["pipe_short"].map({p: i for i, p in enumerate(PIPE_ORDER)})
-            gap_agg = gap_agg.sort_values("order")
 
+            # --- ECDF plot ---
             fig = go.Figure()
-            for _, row in gap_agg.iterrows():
-                fig.add_trace(go.Bar(
-                    x=[row["pipe_short"]],
-                    y=[row["mean"]],
-                    error_y=dict(type="data", array=[row["std"]], visible=True),
-                    marker_color=PIPE_COLORS.get(row["pipe_short"], "#888"),
-                    text=[f'{row["mean"]:.4f}'],
-                    textposition="outside",
-                    name=row["pipe_short"],
-                    showlegend=False,
+            for p in pipes:
+                pdata = gap_df[gap_df["pipe_short"] == p]["gap"].sort_values().values
+                if len(pdata) == 0:
+                    continue
+                ecdf_y = np.arange(1, len(pdata) + 1) / len(pdata)
+                fig.add_trace(go.Scatter(
+                    x=pdata, y=ecdf_y, mode="lines+markers",
+                    name=p, line=dict(color=PIPE_COLORS.get(p, "#888"), width=2),
+                    marker=dict(size=5),
                 ))
-            fig.update_layout(title="Mean Best - 2nd Best Accuracy Gap",
-                              yaxis_title="Accuracy Gap",
-                              template="plotly_white")
+            # Reference lines
+            for thresh, label in [(0.005, "Almost tied"), (0.01, "Weakly separated")]:
+                fig.add_vline(x=thresh, line_dash="dot", line_color="#94A3B8",
+                              annotation_text=label, annotation_position="top right",
+                              annotation_font_size=10, annotation_font_color="#64748B")
+            fig.update_layout(
+                title="ECDF of Best − 2nd Best Accuracy Gap",
+                xaxis_title="Accuracy Gap (best − 2nd best)",
+                yaxis_title="Cumulative Fraction of Subjects",
+                template="plotly_white",
+                yaxis=dict(range=[0, 1.05]),
+            )
             st.plotly_chart(fig, width="stretch")
-            st.caption("Lower bars indicate the pipeline is more robust to configuration choice. Error bars show ±1 SD across subjects.")
+            st.caption("Curves further to the left indicate more fragile configuration rankings. "
+                       "The vertical reference lines mark gaps of 0.005 (almost tied) and 0.01 (weakly separated).")
+
+            # --- Subject × Pipeline heatmap ---
+            gap_pivot = gap_df.pivot(index="subject", columns="pipe_short", values="gap")
+            gap_pivot = gap_pivot[[p for p in PIPE_ORDER if p in gap_pivot.columns]]
+            gap_pivot.index = [f"S{s}" for s in gap_pivot.index]
+
+            fig_hm = px.imshow(
+                gap_pivot.values,
+                x=gap_pivot.columns.tolist(),
+                y=gap_pivot.index.tolist(),
+                color_continuous_scale=COOL_LIGHT_SEQUENTIAL,
+                text_auto=".4f", aspect="auto",
+                zmin=0,
+                zmax=float(gap_pivot.values[np.isfinite(gap_pivot.values)].max()) if np.any(np.isfinite(gap_pivot.values)) else 0.05,
+            )
+            fig_hm.update_layout(
+                title="Top-2 Gap by Subject × Pipeline",
+                template="plotly_white",
+                height=max(300, len(gap_pivot) * 35),
+                coloraxis_colorbar_title="Gap",
+            )
+            st.plotly_chart(fig_hm, width="stretch")
+            st.caption("Darker cells = larger gap (more decisive winner). Light cells = nearly tied top-2 configurations. "
+                       "Rows where most cells are light indicate subjects whose best configuration is fragile across pipelines.")
 
         # --- Config selection premium (B - M) box plot ---
         st.subheader("Configuration Selection Premium (B - M)")
