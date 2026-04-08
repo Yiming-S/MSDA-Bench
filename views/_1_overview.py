@@ -61,7 +61,7 @@ def render(store, dataset):
                     text_auto=True,
                     aspect='auto')
     fig.update_layout(height=max(300, len(subjects)*35))
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
     # Matched subjects
     st.subheader("Matched Subject Sets")

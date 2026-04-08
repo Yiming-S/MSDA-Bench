@@ -62,7 +62,7 @@ def render(store, dataset):
                              category_orders={"pipe_short": pipes})
                 fig.update_layout(title="Per-Class Accuracy by Pipeline",
                                   yaxis_title="Accuracy", template="plotly_white")
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
                 st.caption("Accuracy broken down by true class label. Imbalance reveals class-specific weaknesses.")
 
             # --- Confusion matrix for selected subject/pipeline ---
@@ -92,7 +92,7 @@ def render(store, dataset):
                     fig.update_layout(title=f"Confusion Matrix (S{sel_subj}, {sel_pipe})",
                                       xaxis_title="Predicted", yaxis_title="True",
                                       template="plotly_white")
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width="stretch")
                     st.caption("Diagonal = correct predictions. Off-diagonal = misclassifications.")
                 else:
                     st.info("No prediction arrays for selected subject/pipeline.")
@@ -119,7 +119,7 @@ def render(store, dataset):
             hard = hard.sort_values(acc_col).head(10)
             hard.columns = ["Session", "Mean Accuracy"]
             st.dataframe(hard.style.format({"Mean Accuracy": "{:.4f}"}),
-                         hide_index=True, use_container_width=True)
+                         hide_index=True, width="stretch")
             st.caption("Sessions with lowest mean accuracy across all pipelines and subjects.")
 
         # --- Hard subjects table ---
@@ -131,7 +131,7 @@ def render(store, dataset):
             subj_acc.columns = ["Subject", "Mean Accuracy"]
             subj_acc["Subject"] = subj_acc["Subject"].apply(lambda s: f"S{s}")
             st.dataframe(subj_acc.style.format({"Mean Accuracy": "{:.4f}"}),
-                         hide_index=True, use_container_width=True)
+                         hide_index=True, width="stretch")
             st.caption("Subjects with lowest mean accuracy, indicating inherently difficult EEG patterns.")
 
     except Exception as e:

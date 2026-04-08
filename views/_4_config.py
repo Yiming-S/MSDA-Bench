@@ -60,7 +60,7 @@ def render(store, dataset):
                         zmin=pivot.values[np.isfinite(pivot.values)].min() - 0.02 if np.any(np.isfinite(pivot.values)) else 0.5,
                         zmax=pivot.values[np.isfinite(pivot.values)].max() + 0.02 if np.any(np.isfinite(pivot.values)) else 1.0)
         fig.update_layout(template="plotly_white", height=max(400, top_n * 25))
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
         # Feature Contribution is shown in Pipeline Benchmark page
 
@@ -74,7 +74,7 @@ def render(store, dataset):
                         ascending=(sort_by == "sd_acc")).head(top_n * len(pipes))
         fmt = {c: "{:.4f}" for c in display_cols if c in ("mean_acc", "median_acc", "sd_acc", "mean_gain", "helps_rate")}
         st.dataframe(sorted_cfg[display_cols].style.format(fmt),
-                     hide_index=True, use_container_width=True)
+                     hide_index=True, width="stretch")
         st.caption(f"Configs sorted by {sort_by}. Shows top entries per pipeline.")
 
     except Exception as e:
