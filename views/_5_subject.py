@@ -61,8 +61,15 @@ def render(store, dataset):
             disp_cols = [c for c in ["pipe_short", "M_acc", "B_acc", "G_gain", "H_helps",
                                       "n_cfg", "best_feature", "best_classifier", "best_da"]
                         if c in sp_ord.columns]
-            fmt2 = {c: "{:.4f}" for c in disp_cols if c in ("M_acc", "B_acc", "G_gain", "H_helps")}
-            st.dataframe(sp_ord[disp_cols].style.format(fmt2),
+            rename_map = {"pipe_short": "Pipeline", "M_acc": "Mean Accuracy",
+                          "B_acc": "Best Accuracy", "G_gain": "Mean DA Gain",
+                          "H_helps": "DA Helps Rate", "n_cfg": "# Configurations",
+                          "best_feature": "Best Feature", "best_classifier": "Best Classifier",
+                          "best_da": "Best DA"}
+            disp_df = sp_ord[disp_cols].rename(columns=rename_map)
+            fmt2 = {rename_map[c]: "{:.4f}" for c in disp_cols
+                     if c in ("M_acc", "B_acc", "G_gain", "H_helps")}
+            st.dataframe(disp_df.style.format(fmt2),
                          hide_index=True, width="stretch")
 
         # --- Best vs mean gap per pipeline ---

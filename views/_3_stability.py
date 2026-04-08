@@ -177,8 +177,14 @@ def render(store, dataset):
             stable = cfg[cfg["n_subject"] >= 3].nsmallest(5, "sd_acc")
             display_cols = [c for c in ["pipe_short", "config_label", "mean_acc", "sd_acc", "n_subject"]
                            if c in stable.columns]
-            st.dataframe(stable[display_cols].style.format(
-                {c: "{:.4f}" for c in display_cols if c in ("mean_acc", "sd_acc")}),
+            st.dataframe(stable[display_cols].rename(columns={
+                "pipe_short": "Pipeline",
+                "config_label": "Configuration",
+                "mean_acc": "Mean Accuracy",
+                "sd_acc": "SD",
+                "n_subject": "# Subjects",
+            }).style.format(
+                {"Mean Accuracy": "{:.4f}", "SD": "{:.4f}"}),
                 hide_index=True, width="stretch")
             st.caption("Configurations with at least 3 subjects, ranked by lowest standard deviation.")
 

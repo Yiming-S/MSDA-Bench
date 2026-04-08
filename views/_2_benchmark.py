@@ -129,10 +129,10 @@ def render(store, dataset):
             'SD': np.std(vals, ddof=1) if len(vals)>1 else 0,
             'P5': np.percentile(vals, 5), 'P25': np.percentile(vals, 25),
             'P75': np.percentile(vals, 75), 'Min': np.min(vals), 'Max': np.max(vals),
-            'n_subj': len(vals)
+            '# Subjects': len(vals)
         })
     stats_df = pd.DataFrame(stats_rows)
-    st.dataframe(stats_df.style.format({c: "{:.4f}" for c in stats_df.columns if c not in ('Pipeline','n_subj')}),
+    st.dataframe(stats_df.style.format({c: "{:.4f}" for c in stats_df.columns if c not in ('Pipeline','# Subjects')}),
                  width="stretch")
 
     # --- Paired comparison ---

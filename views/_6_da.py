@@ -99,8 +99,12 @@ def render(store, dataset):
             harm["harm_rate"] = 1 - harm["mean_helps"]
             harm["order"] = harm["pipe_short"].map({p: i for i, p in enumerate(PIPE_ORDER)})
             harm = harm.sort_values("order")
-            st.dataframe(harm[["pipe_short", "mean_helps", "harm_rate", "min_helps", "n_configs"]].style.format(
-                {"mean_helps": "{:.3f}", "harm_rate": "{:.3f}", "min_helps": "{:.3f}"}),
+            st.dataframe(harm[["pipe_short", "mean_helps", "harm_rate", "min_helps", "n_configs"]].rename(columns={
+                "pipe_short": "Pipeline", "mean_helps": "DA Helps Rate",
+                "harm_rate": "DA Harm Rate", "min_helps": "Min Helps Rate",
+                "n_configs": "# Configurations"
+            }).style.format(
+                {"DA Helps Rate": "{:.3f}", "DA Harm Rate": "{:.3f}", "Min Helps Rate": "{:.3f}"}),
                 hide_index=True, width="stretch")
             st.caption("Harm rate = fraction of configurations where DA reduces accuracy below baseline.")
 

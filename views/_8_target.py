@@ -72,7 +72,8 @@ def render(store, dataset):
         sess_diff = ddf.groupby(target_col)[acc_col].agg(["mean", "std", "count"]).reset_index()
         sess_diff.columns = [target_col, "mean_acc", "sd_acc", "n_folds"]
         sess_diff = sess_diff.sort_values("mean_acc", ascending=True)
-        st.dataframe(sess_diff.style.format({"mean_acc": "{:.4f}", "sd_acc": "{:.4f}"}),
+        sess_diff = sess_diff.rename(columns={"mean_acc": "Mean Accuracy", "sd_acc": "SD", "n_folds": "# Folds"})
+        st.dataframe(sess_diff.style.format({"Mean Accuracy": "{:.4f}", "SD": "{:.4f}"}),
                      hide_index=True, width="stretch")
         st.caption("Sessions sorted by mean accuracy (hardest first). Hard sessions have lower mean accuracy.")
 

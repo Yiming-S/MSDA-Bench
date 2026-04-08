@@ -72,8 +72,12 @@ def render(store, dataset):
                        if c in cfg.columns]
         sorted_cfg = cfg[cfg["pipe_short"].isin(pipes)].sort_values(sort_by,
                         ascending=(sort_by == "sd_acc")).head(top_n * len(pipes))
-        fmt = {c: "{:.4f}" for c in display_cols if c in ("mean_acc", "median_acc", "sd_acc", "mean_gain", "helps_rate")}
-        st.dataframe(sorted_cfg[display_cols].style.format(fmt),
+        rename_map = {"pipe_short": "Pipeline", "config_label": "Configuration",
+                      "mean_acc": "Mean Accuracy", "median_acc": "Median Accuracy",
+                      "sd_acc": "SD", "mean_gain": "Mean DA Gain",
+                      "helps_rate": "DA Helps Rate", "n_subject": "# Subjects"}
+        fmt = {rename_map.get(c, c): "{:.4f}" for c in display_cols if c in ("mean_acc", "median_acc", "sd_acc", "mean_gain", "helps_rate")}
+        st.dataframe(sorted_cfg[display_cols].rename(columns=rename_map).style.format(fmt),
                      hide_index=True, width="stretch")
         st.caption(f"Configurations sorted by {sort_by}. Shows top entries per pipeline.")
 
