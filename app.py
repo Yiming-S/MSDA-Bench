@@ -167,16 +167,16 @@ if st.sidebar.button("Refresh Data"):
 
 # Page navigation using tabs (simpler than st.navigation for compatibility)
 pages = {
-    "Overview": page_1_overview,
-    "Pipeline Benchmark": page_2_benchmark,
-    "Stability & Sensitivity": page_3_stability,
-    "Config Explorer": page_4_config,
-    "Subject Explorer": page_5_subject,
-    "DA Analysis": page_6_da,
-    "Mechanism Explorer": page_7_mechanism,
-    "Target Session": page_8_target,
-    "Prediction Error": page_9_error,
-    "Efficiency & Progress": page_10_efficiency,
+    "Dataset Overview": page_1_overview,
+    "Pipeline Comparison": page_2_benchmark,
+    "Selection Sensitivity": page_3_stability,
+    "Configuration Effects": page_4_config,
+    "Subject-Level Results": page_5_subject,
+    "Adaptation Effects": page_6_da,
+    "Session Usage Mechanisms": page_7_mechanism,
+    "Target Session Difficulty": page_8_target,
+    "Error Analysis": page_9_error,
+    "Runtime & Efficiency": page_10_efficiency,
 }
 
 page_name = st.sidebar.radio("Page", list(pages.keys()))
