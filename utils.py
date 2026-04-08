@@ -298,3 +298,24 @@ def make_heatmap(z, x_labels, y_labels, title,
         xaxis=dict(side="bottom"),
     )
     return fig
+
+
+def style_figure(fig, height=None):
+    """Apply unified dashboard styling to a Plotly figure."""
+    fig.update_layout(
+        template="plotly_white",
+        font=dict(family="Inter, system-ui, -apple-system, sans-serif", size=13),
+        title_font=dict(size=16, color="#1E293B"),
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        margin=dict(l=60, r=20, t=50, b=50),
+        hoverlabel=dict(
+            bgcolor="white",
+            font_size=12,
+            font_family="Inter, system-ui, sans-serif",
+            bordercolor="#E2E8F0",
+        ),
+    )
+    if height is not None:
+        fig.update_layout(height=height)
+    return fig

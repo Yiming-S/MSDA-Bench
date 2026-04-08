@@ -1,153 +1,110 @@
 import streamlit as st
 import os
+import base64
 
 st.set_page_config(page_title="MSDA-Bench", page_icon="file.svg", layout="wide")
 
+# ── Global CSS ────────────────────────────────────────────────────────────────
 st.markdown('''
 <style>
-    /* Modern minimalist padding */
+    /* Refined spacing */
     .block-container {
-        padding-top: 2rem !important;
+        padding-top: 1.5rem !important;
         padding-bottom: 2rem !important;
     }
-    
-    /* Enhance metric cards */
+
+    /* Metric cards with gradient */
     div[data-testid="stMetric"] {
-        background-color: #F8FAFC;
+        background: linear-gradient(135deg, #F8FAFC 0%, #EEF2FF 100%);
         border: 1px solid #E2E8F0;
-        border-radius: 8px;
-        padding: 15px;
-        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        border-radius: 12px;
+        padding: 18px 20px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    div[data-testid="stMetric"]:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.08);
     }
     div[data-testid="stMetricValue"] {
-        font-size: 1.8rem;
-        font-weight: 700;
+        font-size: 2rem;
+        font-weight: 800;
         color: #4F46E5;
     }
     div[data-testid="stMetricLabel"] {
-        font-size: 1rem;
-        font-weight: 500;
-        color: #64748B;
-    }
-    
-    /* --- Premium Sidebar Navigation --- */
-    
-    /* Hide the default radio circle */
-    div.stRadio div[role="radiogroup"] label[data-baseweb="radio"] > div:first-child {
-        display: none !important;
-    }
-    
-    /* Style the radio option container like a premium button */
-    div.stRadio div[role="radiogroup"] label[data-baseweb="radio"] {
-        background-color: transparent;
-        border-radius: 8px;
-        padding: 12px 16px;
-        margin-bottom: 6px;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        border: 1px solid transparent;
-        cursor: pointer;
-        width: 100%;
-        display: flex;
-        align-items: center;
-    }
-    
-    /* Hover effect */
-    div.stRadio div[role="radiogroup"] label[data-baseweb="radio"]:hover {
-        background-color: #F1F5F9;
-        transform: translateX(4px);
-    }
-    
-    /* Selected state */
-    div.stRadio div[role="radiogroup"] label[data-baseweb="radio"]:has(input:checked) {
-        background-color: #EEF2FF !important;
-        border: 1px solid #C7D2FE !important;
-        box-shadow: 0 1px 2px 0 rgba(99, 102, 241, 0.1) !important;
-        transform: translateX(4px);
-    }
-    
-    /* Text typography */
-    div.stRadio div[role="radiogroup"] label[data-baseweb="radio"] p {
-        font-size: 1.05rem;
+        font-size: 0.85rem;
         font-weight: 600;
-        color: #475569;
-        margin: 0;
+        color: #64748B;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
-    
-    /* Selected text color */
-    div.stRadio div[role="radiogroup"] label[data-baseweb="radio"]:has(input:checked) p {
-        color: #4338CA !important;
-    }
-    
-    /* Hide the "Page" label for the radio group to clean up UI */
-    div.stRadio > label {
-        display: none !important;
-    }
-    
-    /* Headers typography */
-    h1, h2, h3 {
-        color: #1E293B;
-        font-weight: 700 !important;
-    }
-    
-    /* Dataframes rounded corners & subtle shadow */
+
+    /* Headers */
+    h1 { color: #1E293B; font-weight: 800 !important; }
+    h2 { color: #1E293B; font-weight: 700 !important; letter-spacing: -0.3px; }
+    h3 { color: #334155; font-weight: 600 !important; }
+
+    /* Dataframes */
     div[data-testid="stDataFrame"] {
-        border-radius: 8px;
+        border-radius: 10px;
         overflow: hidden;
         border: 1px solid #E2E8F0;
-        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    }
+
+    /* Alert boxes */
+    div[data-testid="stAlert"] {
+        border-radius: 10px;
+    }
+
+    /* Tab buttons */
+    button[data-baseweb="tab"] {
+        font-weight: 600 !important;
+        font-size: 0.95rem !important;
+    }
+
+    /* Expander headers */
+    details summary {
+        font-weight: 600 !important;
+    }
+
+    /* Sidebar polish */
+    section[data-testid="stSidebar"] > div {
+        padding-top: 1rem;
     }
 </style>
 ''', unsafe_allow_html=True)
 
-# Import pages
-from views import (
-    page_1_overview, page_2_benchmark, page_3_stability,
-    page_4_config, page_5_subject, page_6_da,
-    page_7_mechanism, page_8_target, page_9_error, page_10_efficiency
-)
-
-# Sidebar: dataset selector
-import base64, os
+# ── Sidebar branding ──────────────────────────────────────────────────────────
 _svg_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "file.svg")
 with open(_svg_path, "rb") as _f:
     _svg_b64 = base64.b64encode(_f.read()).decode()
+
 st.sidebar.markdown(
     f'''
     <div style="
-        display: flex; 
-        flex-direction: column;
-        align-items: center; 
-        justify-content: center;
-        margin-top: -15px;
-        margin-bottom: 24px; 
-        padding-bottom: 16px;
+        display: flex; flex-direction: column; align-items: center;
+        justify-content: center; margin-bottom: 20px; padding-bottom: 16px;
         border-bottom: 1px solid #E2E8F0;
     ">
-        <img src="data:image/svg+xml;base64,{_svg_b64}" width="100" height="100" style="filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.1)); margin-bottom: 8px;">
+        <img src="data:image/svg+xml;base64,{_svg_b64}" width="80" height="80"
+             style="filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.08)); margin-bottom: 8px;">
         <h1 style="
-            margin: 0; 
-            font-size: 1.6rem; 
-            font-weight: 800; 
-            background: linear-gradient(90deg, #4F46E5, #8B5CF6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            margin: 0; font-size: 1.5rem; font-weight: 800;
+            background: linear-gradient(135deg, #4F46E5, #7C3AED);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             letter-spacing: -0.5px;
-            line-height: 1.1;
-            text-align: center;
         ">MSDA-Bench</h1>
         <p style="
-            margin: 4px 0 0 0;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: #64748B;
-            text-align: center;
-            line-height: 1.3;
-        ">Multi-Source Domain<br>Adaptation Benchmark</p>
+            margin: 4px 0 0 0; font-size: 0.7rem; font-weight: 600;
+            color: #64748B; text-align: center; line-height: 1.3;
+        ">Multi-Source Domain Adaptation Benchmark</p>
     </div>
     ''',
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
 
+# ── Dataset selector ──────────────────────────────────────────────────────────
 _BASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
 DATA_DIRS = {
     name: os.path.join(_BASE, name)
@@ -157,32 +114,73 @@ DATA_DIRS = {
 
 dataset = st.sidebar.selectbox("Dataset", list(DATA_DIRS.keys()))
 
-# Load data
 from data_loader import get_data_store
 store = get_data_store(DATA_DIRS[dataset], dataset)
 
-if st.sidebar.button("Refresh Data"):
+if st.sidebar.button("Refresh Data", use_container_width=True):
     st.cache_resource.clear()
     st.rerun()
 
-# Page navigation using tabs (simpler than st.navigation for compatibility)
-pages = {
-    "Dataset Overview": page_1_overview,
-    "Pipeline Comparison": page_2_benchmark,
-    "Selection Sensitivity": page_3_stability,
-    "Configuration Effects": page_4_config,
-    "Subject-Level Results": page_5_subject,
-    "Adaptation Effects": page_6_da,
-    "Session Usage Mechanisms": page_7_mechanism,
-    "Target Session Difficulty": page_8_target,
-    "Error Analysis": page_9_error,
-    "Runtime & Efficiency": page_10_efficiency,
-}
+# ── Import pages ──────────────────────────────────────────────────────────────
+from views import (
+    page_1_overview, page_2_benchmark, page_3_stability,
+    page_4_config, page_5_subject, page_6_da,
+    page_7_mechanism, page_8_target, page_9_error, page_10_efficiency,
+)
 
-page_name = st.sidebar.radio("Page", list(pages.keys()))
-pages[page_name].render(store, dataset)
 
-# Author info at bottom of sidebar
+def _wrap(render_func):
+    """Wrap a render(store, dataset) function for st.navigation."""
+    def _run():
+        render_func(store, dataset)
+    return _run
+
+
+# ── Grouped Navigation ───────────────────────────────────────────────────────
+pg = st.navigation({
+    "Overview": [
+        st.Page(_wrap(page_1_overview.render),
+                title="Dataset Overview", icon=":material/dashboard:",
+                url_path="overview"),
+    ],
+    "Performance": [
+        st.Page(_wrap(page_2_benchmark.render),
+                title="Pipeline Comparison", icon=":material/compare_arrows:",
+                url_path="pipeline-comparison"),
+        st.Page(_wrap(page_4_config.render),
+                title="Configuration Effects", icon=":material/tune:",
+                url_path="config-effects"),
+        st.Page(_wrap(page_5_subject.render),
+                title="Subject Explorer", icon=":material/person_search:",
+                url_path="subject-explorer"),
+    ],
+    "Adaptation": [
+        st.Page(_wrap(page_6_da.render),
+                title="Adaptation Effects", icon=":material/auto_fix_high:",
+                url_path="adaptation-effects"),
+        st.Page(_wrap(page_3_stability.render),
+                title="Selection Sensitivity", icon=":material/balance:",
+                url_path="selection-sensitivity"),
+        st.Page(_wrap(page_7_mechanism.render),
+                title="Session Mechanisms", icon=":material/settings_suggest:",
+                url_path="session-mechanisms"),
+        st.Page(_wrap(page_8_target.render),
+                title="Target Difficulty", icon=":material/gps_fixed:",
+                url_path="target-difficulty"),
+    ],
+    "Diagnostics": [
+        st.Page(_wrap(page_9_error.render),
+                title="Error Analysis", icon=":material/bug_report:",
+                url_path="error-analysis"),
+        st.Page(_wrap(page_10_efficiency.render),
+                title="Runtime & Efficiency", icon=":material/speed:",
+                url_path="runtime-efficiency"),
+    ],
+})
+
+pg.run()
+
+# ── Author info ───────────────────────────────────────────────────────────────
 st.sidebar.markdown("---")
 st.sidebar.markdown(
     '<div style="font-size:0.75rem; color:#94A3B8; line-height:1.5;">'
@@ -190,5 +188,5 @@ st.sidebar.markdown(
     'Department of Mathematics<br>'
     'University of Massachusetts Boston'
     '</div>',
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
