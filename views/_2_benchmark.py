@@ -8,6 +8,33 @@ import numpy as np
 from utils import PIPE_ORDER, PIPE_COLORS, format_acc, style_figure
 
 
+def _rebuild_subject_pipeline(sdf: pd.DataFrame) -> pd.DataFrame:
+    """Recompute subject_pipeline aggregates from a (possibly filtered) summary_df."""
+    if sdf.empty or "cvMeanAcc" not in sdf.columns:
+        return pd.DataFrame()
+    rows = []
+    for (subj, pipe), grp in sdf.groupby(["subject", "pipe_short"]):
+        acc = grp["cvMeanAcc"].dropna()
+        if acc.empty:
+            continue
+        gains = (grp["cvMeanAcc"] - grp["baseline"]) if "baseline" in grp.columns else pd.Series(dtype=float)
+        rows.append({
+            "subject": subj,
+            "pipe_short": pipe,
+            "M_acc": acc.mean(),
+            "B_acc": acc.max(),
+            "median_acc": acc.median(),
+            "sd_acc": acc.std(ddof=1) if len(acc) > 1 else 0.0,
+            "G_gain": gains.mean() if not gains.empty else np.nan,
+            "H_helps": (
+                (grp["cvMeanAcc"] > grp["baseline"]).mean()
+                if "baseline" in grp.columns else np.nan
+            ),
+            "n_cfg": len(grp),
+        })
+    return pd.DataFrame(rows)
+
+
 def render(store, dataset):
     st.header("Pipeline Comparison")
     st.markdown(
@@ -45,12 +72,34 @@ def render(store, dataset):
     with col_metric:
         metric = st.selectbox("Metric", list(metric_options.keys()))
 
+    # BDP degradation filter
+    has_bdp = any(p.startswith("BDP") for p in visible_pipes)
+    has_degrade_col = "degrade_status" in store.summary_df.columns
+    exclude_degraded = False
+    if has_bdp and has_degrade_col:
+        exclude_degraded = st.checkbox(
+            "Exclude fully-degraded BDP configs",
+            help="When checked, BDP configurations where all pairs degraded to MAP-style "
+                 "scoring are removed before computing metrics. This isolates pure BDP behavior.",
+        )
+
     if not visible_pipes:
         st.warning("Select at least one pipeline.")
         return
 
     st.info(metric_descriptions[metric])
     col_name = metric_options[metric]
+
+    # When degradation filter is active, recompute subject_pipeline from filtered summary
+    if exclude_degraded:
+        filtered_sdf = store.summary_df[
+            ~(
+                store.summary_df["pipe_short"].str.startswith("BDP")
+                & (store.summary_df["degrade_status"] == "full_degrade")
+            )
+        ]
+        sp = _rebuild_subject_pipeline(filtered_sdf)
+        st.caption("BDP fully-degraded configs excluded from this comparison.")
 
     # Determine subjects
     if subject_mode == "Matched only":

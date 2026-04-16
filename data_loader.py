@@ -149,6 +149,15 @@ class DataStore:
             return pd.DataFrame()
 
         result = pd.concat(frames, ignore_index=True)
+
+        # Classify BDP degradation status from the 'score' column
+        if "score" in result.columns:
+            result["degrade_status"] = result["score"].apply(
+                self._classify_degradation
+            )
+        else:
+            result["degrade_status"] = "n/a"
+
         return result
 
     def _load_details(self) -> pd.DataFrame:
@@ -170,6 +179,13 @@ class DataStore:
                 continue
 
             if isinstance(records, list):
+                # Extract degradation fields from nested bestSetup
+                for rec in records:
+                    bs = rec.get("bestSetup")
+                    if isinstance(bs, dict):
+                        rec["degraded"] = bs.get("degraded", False)
+                        rec["score_mode"] = bs.get("score_mode", "unknown")
+                        rec["partition_mode"] = bs.get("partition_mode", "unknown")
                 all_records.extend(records)
             else:
                 logger.warning("Unexpected type in %s: %s", fpath, type(records))
@@ -236,6 +252,7 @@ class DataStore:
                     columns=["check_name", "status", "message", "severity"]
                 ),
                 "matched_sets": {},
+                "degradation": pd.DataFrame(),
             }
 
         return {
@@ -244,6 +261,7 @@ class DataStore:
             "config_agg": self._build_config_agg(sdf),
             "qc_results": self._run_qc(),
             "matched_sets": self._build_matched_sets(),
+            "degradation": self._build_degradation_summary(),
         }
 
     def _build_completion(self, sdf: pd.DataFrame) -> pd.DataFrame:
@@ -472,6 +490,60 @@ class DataStore:
             })
 
         return pd.DataFrame(checks)
+
+    # -- Degradation analytics -----------------------------------------------
+
+    def _build_degradation_summary(self) -> pd.DataFrame:
+        """Aggregate per-(subject, pipe_short, feature) degradation ratios.
+
+        Only meaningful for BDP pipelines; returns an empty DataFrame
+        if no detail data is available.
+        """
+        ddf = self.detail_df
+        if ddf.empty or "degraded" not in ddf.columns:
+            return pd.DataFrame()
+
+        bdp_mask = ddf["pipe_short"].isin(["BDP_fb", "BDP_bf"])
+        bdp = ddf.loc[bdp_mask].copy()
+        if bdp.empty:
+            return pd.DataFrame()
+
+        group_cols = ["subject", "pipe_short", "feature"]
+        available = [c for c in group_cols if c in bdp.columns]
+        if not available:
+            return pd.DataFrame()
+
+        rows = []
+        for keys, grp in bdp.groupby(available):
+            if not isinstance(keys, tuple):
+                keys = (keys,)
+            info = dict(zip(available, keys))
+            total = len(grp)
+            n_degraded = grp["degraded"].sum()
+            info["total_pairs"] = total
+            info["degraded_pairs"] = int(n_degraded)
+            info["degraded_ratio"] = n_degraded / total if total else 0.0
+
+            # Accuracy split
+            pure = grp.loc[~grp["degraded"], "acc_DA"] if "acc_DA" in grp.columns else pd.Series(dtype=float)
+            deg = grp.loc[grp["degraded"], "acc_DA"] if "acc_DA" in grp.columns else pd.Series(dtype=float)
+            info["acc_pure"] = pure.mean() if not pure.empty else np.nan
+            info["acc_degraded"] = deg.mean() if not deg.empty else np.nan
+            rows.append(info)
+
+        return pd.DataFrame(rows)
+
+    @staticmethod
+    def _classify_degradation(score_val) -> str:
+        """Classify a summary-row 'score' value into a degradation status."""
+        s = str(score_val)
+        if s == "bridge_proxy":
+            return "pure"
+        if s.startswith("map_"):
+            return "full_degrade"
+        if "mixed" in s:
+            return "partial"
+        return "n/a"
 
     # -- Internal helpers ----------------------------------------------------
 

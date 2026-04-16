@@ -102,13 +102,62 @@ def render(store, dataset):
                     columns=[p for p in PIPE_ORDER if p in pivot.columns],
                 )
                 fmt = {c: "{:.4f}" for c in pivot.columns}
-                st.dataframe(
-                    pivot.style.format(fmt, na_rep="---").background_gradient(
+
+                # Build degradation status pivot for BDP columns
+                has_degrade = "degrade_status" in subj_data.columns
+                bdp_cols_in_pivot = [c for c in pivot.columns if c.startswith("BDP")]
+                if has_degrade and bdp_cols_in_pivot:
+                    deg_pivot = subj_data.pivot_table(
+                        index="config_label", columns="pipe_short",
+                        values="degrade_status", aggfunc="first",
+                    )
+
+                    def _highlight_degraded(styler):
+                        """Apply amber/red background to degraded BDP cells."""
+                        for col in bdp_cols_in_pivot:
+                            if col not in deg_pivot.columns:
+                                continue
+                            for idx in styler.index:
+                                status = deg_pivot.at[idx, col] if idx in deg_pivot.index else None
+                                if status == "full_degrade":
+                                    styler._todo.append(
+                                        (styler._translate_col(col), idx,
+                                         "background-color: rgba(239,68,68,0.15);")
+                                    )
+                        return styler
+
+                    styled = pivot.style.format(fmt, na_rep="---").background_gradient(
                         cmap="RdYlGn", axis=None,
-                    ),
-                    use_container_width=True,
-                    height=min(500, max(200, len(pivot) * 35)),
-                )
+                    )
+                    # Apply degradation markers via cell-level styling
+                    deg_style_map = pd.DataFrame("", index=pivot.index, columns=pivot.columns)
+                    for col in bdp_cols_in_pivot:
+                        if col in deg_pivot.columns:
+                            for idx in pivot.index:
+                                if idx in deg_pivot.index:
+                                    status = deg_pivot.at[idx, col]
+                                    if status == "full_degrade":
+                                        deg_style_map.at[idx, col] = "border-left: 4px solid #EF4444;"
+                                    elif status == "partial":
+                                        deg_style_map.at[idx, col] = "border-left: 4px solid #F59E0B;"
+                    styled = styled.apply(lambda _: deg_style_map, axis=None)
+                    st.dataframe(
+                        styled,
+                        use_container_width=True,
+                        height=min(500, max(200, len(pivot) * 35)),
+                    )
+                    st.caption(
+                        "Red left border = fully degraded to MAP; "
+                        "amber left border = partially degraded."
+                    )
+                else:
+                    st.dataframe(
+                        pivot.style.format(fmt, na_rep="---").background_gradient(
+                            cmap="RdYlGn", axis=None,
+                        ),
+                        use_container_width=True,
+                        height=min(500, max(200, len(pivot) * 35)),
+                    )
             else:
                 st.info(f"No data for subject S{subj}.")
 

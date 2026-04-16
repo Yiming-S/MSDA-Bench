@@ -128,6 +128,43 @@ def render(store, dataset):
                 style_figure(fig)
                 st.plotly_chart(fig, use_container_width=True)
 
+        # ── BDP: DA gain stratified by degradation ────────────────────────────
+        has_degrade = "degrade_status" in sdf.columns
+        bdp_pipes = [p for p in pipes if p.startswith("BDP")]
+        if has_degrade and bdp_pipes:
+            with st.container(border=True):
+                st.subheader("BDP: DA Gain by Degradation Status")
+                st.caption(
+                    "Does DA effectiveness differ between pure BDP and degraded (MAP-style) configs?"
+                )
+                bdp_data = sdf[
+                    sdf["pipe_short"].isin(bdp_pipes)
+                    & sdf["degrade_status"].isin(["pure", "partial", "full_degrade"])
+                ].copy()
+                if not bdp_data.empty and "baseline" in bdp_data.columns:
+                    bdp_data["gain"] = bdp_data["cvMeanAcc"] - bdp_data["baseline"]
+                    gain_by_status = bdp_data.groupby(
+                        ["pipe_short", "degrade_status"]
+                    )["gain"].agg(["mean", "std", "count"]).reset_index()
+
+                    from utils import DEGRADE_COLORS
+                    fig = px.bar(
+                        gain_by_status, x="pipe_short", y="mean", color="degrade_status",
+                        barmode="group",
+                        color_discrete_map=DEGRADE_COLORS,
+                        error_y="std",
+                        text=gain_by_status["mean"].apply(lambda v: f"{v:+.4f}"),
+                        category_orders={"degrade_status": ["pure", "partial", "full_degrade"]},
+                    )
+                    fig.update_traces(textposition="outside", textfont_size=10)
+                    fig.update_layout(
+                        yaxis_title="Mean DA Gain", xaxis_title="Pipeline",
+                        legend_title="Status",
+                    )
+                    fig.add_hline(y=0, line_dash="dash", line_color="gray")
+                    style_figure(fig)
+                    st.plotly_chart(fig, use_container_width=True)
+
         # ── Harm rate table ───────────────────────────────────────────────────
         with st.container(border=True):
             st.subheader("Harm Rate by Pipeline")

@@ -30,11 +30,21 @@ def render(store, dataset):
     completed_cells = int(completion.sum().sum())
     completion_pct = completed_cells / total_cells * 100 if total_cells > 0 else 0
 
-    c1, c2, c3, c4 = st.columns(4)
+    # Check if BDP degradation data is available
+    deg_df = store.derived.get("degradation", pd.DataFrame())
+    has_bdp_degrade = not deg_df.empty
+
+    if has_bdp_degrade:
+        c1, c2, c3, c4, c5 = st.columns(5)
+    else:
+        c1, c2, c3, c4 = st.columns(4)
     c1.metric("Subjects", len(subjects))
     c2.metric("Pipelines", len(pipes_present))
     c3.metric("Configs / Pipeline", n_configs)
     c4.metric("Completion", f"{completion_pct:.0f}%")
+    if has_bdp_degrade:
+        mean_deg = deg_df["degraded_ratio"].mean()
+        c5.metric("BDP Degrade Rate", f"{mean_deg:.0%}")
 
     # ── Takeaway ──────────────────────────────────────────────────────────────
     if not sp.empty:

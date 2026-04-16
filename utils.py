@@ -50,6 +50,13 @@ ROLE_COLORS = {
     "not_used": "#94A3B8",
 }
 
+DEGRADE_COLORS = {
+    "pure": "#10B981",          # emerald – normal BDP
+    "partial": "#F59E0B",       # amber – some pairs degraded
+    "full_degrade": "#EF4444",  # red – fully degraded to MAP
+    "n/a": "#94A3B8",           # slate – non-BDP pipelines
+}
+
 TABLE_HIGHLIGHT = "background-color: rgba(47, 111, 237, 0.14); color: #183A63; font-weight: 700;"
 
 COOL_LIGHT_SEQUENTIAL = [
