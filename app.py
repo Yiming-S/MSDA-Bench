@@ -126,6 +126,7 @@ from views import (
     page_1_overview, page_2_benchmark, page_3_stability,
     page_4_config, page_5_subject, page_6_da,
     page_7_mechanism, page_8_target, page_9_error, page_10_efficiency,
+    page_11_degradation,
 )
 
 
@@ -167,6 +168,9 @@ pg = st.navigation({
         st.Page(_wrap(page_8_target.render),
                 title="Target Difficulty", icon=":material/gps_fixed:",
                 url_path="target-difficulty"),
+        st.Page(_wrap(page_11_degradation.render),
+                title="BDP Degradation", icon=":material/warning:",
+                url_path="bdp-degradation"),
     ],
     "Diagnostics": [
         st.Page(_wrap(page_9_error.render),

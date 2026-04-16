@@ -8,3 +8,4 @@ from views import _7_mechanism as page_7_mechanism
 from views import _8_target as page_8_target
 from views import _9_error as page_9_error
 from views import _10_efficiency as page_10_efficiency
+from views import _11_degradation as page_11_degradation

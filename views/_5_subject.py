@@ -112,20 +112,6 @@ def render(store, dataset):
                         values="degrade_status", aggfunc="first",
                     )
 
-                    def _highlight_degraded(styler):
-                        """Apply amber/red background to degraded BDP cells."""
-                        for col in bdp_cols_in_pivot:
-                            if col not in deg_pivot.columns:
-                                continue
-                            for idx in styler.index:
-                                status = deg_pivot.at[idx, col] if idx in deg_pivot.index else None
-                                if status == "full_degrade":
-                                    styler._todo.append(
-                                        (styler._translate_col(col), idx,
-                                         "background-color: rgba(239,68,68,0.15);")
-                                    )
-                        return styler
-
                     styled = pivot.style.format(fmt, na_rep="---").background_gradient(
                         cmap="RdYlGn", axis=None,
                     )
@@ -150,6 +136,29 @@ def render(store, dataset):
                         "Red left border = fully degraded to MAP; "
                         "amber left border = partially degraded."
                     )
+
+                    # Drill-down links to BDP Degradation page
+                    deg_summary = store.derived.get("degradation", pd.DataFrame())
+                    if not deg_summary.empty:
+                        for bdp_col in bdp_cols_in_pivot:
+                            col_deg = deg_summary[
+                                (deg_summary["subject"] == subj)
+                                & (deg_summary["pipe_short"] == bdp_col)
+                            ]
+                            if not col_deg.empty:
+                                ratio = (
+                                    col_deg["degraded_pairs"].sum()
+                                    / col_deg["total_pairs"].sum()
+                                )
+                                if ratio > 0:
+                                    st.page_link(
+                                        "views/_11_degradation.py",
+                                        label=(
+                                            f"S{subj} / {bdp_col}: "
+                                            f"{ratio:.0%} degraded — view details"
+                                        ),
+                                        icon=":material/warning:",
+                                    )
                 else:
                     st.dataframe(
                         pivot.style.format(fmt, na_rep="---").background_gradient(

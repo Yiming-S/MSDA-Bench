@@ -423,141 +423,54 @@ def _render_session_roles(store, dataset, subjects, pipe, avail_pipes):
                     st.plotly_chart(fig, use_container_width=True)
 
 
-# ── Degradation Analysis tab ─────────────────────────────────────────────────
+# ── Degradation Analysis tab (summary + link) ───────────────────────────────
 
 def _render_degradation_tab(store, deg_df, pipe, subjects):
-    """Render the BDP degradation analysis tab."""
+    """Render a compact BDP degradation summary with a link to the full page."""
 
     pipe_deg = deg_df[deg_df["pipe_short"] == pipe].copy()
     if pipe_deg.empty:
         st.info(f"No degradation data for {pipe}.")
         return
 
-    # ── Takeaway ──────────────────────────────────────────────────────────
-    overall_ratio = (
-        pipe_deg["degraded_pairs"].sum() / pipe_deg["total_pairs"].sum()
-        if pipe_deg["total_pairs"].sum() > 0 else 0
-    )
-    n_full = (pipe_deg["degraded_ratio"] == 1.0).sum()
-    n_pure = (pipe_deg["degraded_ratio"] == 0.0).sum()
+    # ── Summary stats ─────────────────────────────────────────────────────
+    total_pairs = pipe_deg["total_pairs"].sum()
+    total_degraded = pipe_deg["degraded_pairs"].sum()
+    overall_ratio = total_degraded / total_pairs if total_pairs > 0 else 0
+
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Overall Degrade Rate", f"{overall_ratio:.0%}")
+    c2.metric("Degraded Pairs", f"{total_degraded:,} / {total_pairs:,}")
+    c3.metric("Subjects Affected",
+              f"{(pipe_deg.groupby('subject')['degraded_pairs'].sum() > 0).sum()}"
+              f" / {pipe_deg['subject'].nunique()}")
+
     st.info(
-        f"**{pipe}**: {overall_ratio:.0%} of all pairs degraded to MAP. "
-        f"{n_pure} subject-feature combos fully pure, {n_full} fully degraded."
+        f"**{pipe}**: {overall_ratio:.0%} of all pairs degraded to MAP-style scoring. "
+        "When no valid far-session candidate exists, BDP falls back to all-source training."
     )
 
-    # ── 1. Heatmap: subject x feature degradation ratio ──────────────────
-    col_hm, col_bar = st.columns(2)
-
-    with col_hm:
-        with st.container(border=True):
-            st.subheader("Degradation Rate Heatmap")
-            st.caption("Subject x Feature. Darker red = more pairs degraded to MAP.")
-            if "feature" in pipe_deg.columns:
-                pivot = pipe_deg.pivot_table(
-                    index="subject", columns="feature",
-                    values="degraded_ratio", aggfunc="first",
-                )
-                pivot.index = [f"S{s}" for s in pivot.index]
-                fig = px.imshow(
-                    pivot.values,
-                    x=pivot.columns.tolist(), y=pivot.index.tolist(),
-                    color_continuous_scale=[[0, "#F0FDF4"], [0.5, "#FDE68A"], [1, "#EF4444"]],
-                    zmin=0, zmax=1, text_auto=".0%", aspect="auto",
-                )
-                fig.update_layout(coloraxis_colorbar_title="Degrade %")
-                style_figure(fig, height=max(300, len(pivot) * 28))
-                st.plotly_chart(fig, use_container_width=True)
-
-    with col_bar:
-        with st.container(border=True):
-            st.subheader("Per-Subject Degradation")
-            st.caption("Stacked bars: pure vs degraded pairs per subject.")
-            subj_agg = pipe_deg.groupby("subject").agg(
-                total=("total_pairs", "sum"),
-                degraded=("degraded_pairs", "sum"),
-            ).reset_index()
-            subj_agg["pure"] = subj_agg["total"] - subj_agg["degraded"]
-            subj_agg["subject_label"] = subj_agg["subject"].apply(lambda s: f"S{s}")
-            subj_agg = subj_agg.sort_values("subject")
-
-            fig = go.Figure()
-            fig.add_trace(go.Bar(
-                x=subj_agg["subject_label"], y=subj_agg["pure"],
-                name="Pure BDP", marker_color=DEGRADE_COLORS["pure"],
-            ))
-            fig.add_trace(go.Bar(
-                x=subj_agg["subject_label"], y=subj_agg["degraded"],
-                name="Degraded", marker_color=DEGRADE_COLORS["full_degrade"],
-            ))
-            fig.update_layout(
-                barmode="stack", yaxis_title="# Pairs",
-                xaxis_title="Subject", legend_title="Status",
-            )
-            style_figure(fig, height=max(300, 350))
-            st.plotly_chart(fig, use_container_width=True)
-
-    # ── 2. Pure vs Degraded accuracy comparison ──────────────────────────
-    with st.container(border=True):
-        st.subheader("Pure vs Degraded Accuracy")
-        st.caption(
-            "Box plot comparing acc_DA for pure BDP pairs vs degraded (MAP-style) pairs."
-        )
-        ddf = store.detail_df
-        if not ddf.empty and "degraded" in ddf.columns and "acc_DA" in ddf.columns:
-            bdp_detail = ddf[ddf["pipe_short"] == pipe].copy()
-            bdp_detail["status"] = bdp_detail["degraded"].map(
-                {True: "Degraded", False: "Pure BDP"},
-            )
-            if not bdp_detail.empty:
-                fig = px.box(
-                    bdp_detail, x="status", y="acc_DA", color="status",
-                    color_discrete_map={
-                        "Pure BDP": DEGRADE_COLORS["pure"],
-                        "Degraded": DEGRADE_COLORS["full_degrade"],
-                    },
-                    points="outliers",
-                )
-                fig.update_layout(
-                    yaxis_title="Accuracy (acc_DA)", xaxis_title="",
-                    showlegend=False,
-                )
-                style_figure(fig)
-                st.plotly_chart(fig, use_container_width=True)
-
-                # Summary stats table
-                stats = bdp_detail.groupby("status")["acc_DA"].agg(
-                    ["mean", "median", "std", "count"],
-                ).reset_index()
-                stats.columns = ["Status", "Mean", "Median", "SD", "N Pairs"]
-                st.dataframe(
-                    stats.style.format({"Mean": "{:.4f}", "Median": "{:.4f}", "SD": "{:.4f}"}),
-                    hide_index=True, use_container_width=True,
-                )
-        else:
-            st.info("Detail data with degradation info not available.")
-
-    # ── 3. Degradation rate by feature ───────────────────────────────────
+    # ── Quick feature breakdown ───────────────────────────────────────────
     if "feature" in pipe_deg.columns:
         with st.container(border=True):
-            st.subheader("Degradation by Feature")
-            st.caption("Which features trigger degradation most often?")
+            st.subheader("Degradation by Feature (Quick View)")
             feat_agg = pipe_deg.groupby("feature").agg(
                 total=("total_pairs", "sum"),
                 degraded=("degraded_pairs", "sum"),
             ).reset_index()
-            feat_agg["degraded_ratio"] = feat_agg["degraded"] / feat_agg["total"]
-            feat_agg = feat_agg.sort_values("degraded_ratio", ascending=False)
+            feat_agg["Degrade %"] = (
+                feat_agg["degraded"] / feat_agg["total"]
+            ).apply(lambda v: f"{v:.0%}")
+            feat_agg = feat_agg.rename(columns={
+                "feature": "Feature", "total": "Total Pairs",
+                "degraded": "Degraded Pairs",
+            })
+            st.dataframe(feat_agg, hide_index=True, use_container_width=True)
 
-            fig = px.bar(
-                feat_agg, x="feature", y="degraded_ratio",
-                color="degraded_ratio",
-                color_continuous_scale=[[0, "#10B981"], [0.5, "#F59E0B"], [1, "#EF4444"]],
-                text=feat_agg["degraded_ratio"].apply(lambda v: f"{v:.0%}"),
-            )
-            fig.update_traces(textposition="outside")
-            fig.update_layout(
-                yaxis_title="Degradation Rate", yaxis=dict(tickformat=".0%"),
-                xaxis_title="Feature", coloraxis_showscale=False,
-            )
-            style_figure(fig)
-            st.plotly_chart(fig, use_container_width=True)
+    # ── Link to full page ─────────────────────────────────────────────────
+    st.markdown("---")
+    st.page_link(
+        "views/_11_degradation.py",
+        label="Open full BDP Degradation Explorer",
+        icon=":material/open_in_new:",
+    )
