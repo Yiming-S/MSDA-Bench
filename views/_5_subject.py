@@ -151,13 +151,14 @@ def render(store, dataset):
                                     / col_deg["total_pairs"].sum()
                                 )
                                 if ratio > 0:
-                                    st.page_link(
-                                        "views/_11_degradation.py",
-                                        label=(
-                                            f"S{subj} / {bdp_col}: "
-                                            f"{ratio:.0%} degraded — view details"
-                                        ),
-                                        icon=":material/warning:",
+                                    link = (
+                                        f"/bdp-degradation"
+                                        f"?subject={subj}&pipe={bdp_col}"
+                                    )
+                                    st.markdown(
+                                        f"⚠️ **S{subj} / {bdp_col}**: "
+                                        f"{ratio:.0%} degraded — "
+                                        f"[view details]({link})"
                                     )
                 else:
                     st.dataframe(

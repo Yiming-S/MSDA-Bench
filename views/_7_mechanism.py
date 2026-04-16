@@ -469,8 +469,4 @@ def _render_degradation_tab(store, deg_df, pipe, subjects):
 
     # ── Link to full page ─────────────────────────────────────────────────
     st.markdown("---")
-    st.page_link(
-        "views/_11_degradation.py",
-        label="Open full BDP Degradation Explorer",
-        icon=":material/open_in_new:",
-    )
+    st.markdown("🔗 [Open full BDP Degradation Explorer](/bdp-degradation)")
