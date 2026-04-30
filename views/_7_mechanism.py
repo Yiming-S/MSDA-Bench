@@ -17,18 +17,28 @@ def compute_utilization(_store, dataset):
     if sdf.empty:
         return pd.DataFrame()
 
-    combos = sdf[["subject", "pipe_short", "n_session"]].drop_duplicates()
+    combo_cols = ["subject", "pipe_short"]
+    if "n_session" in sdf.columns:
+        combo_cols.append("n_session")
+    combos = sdf[combo_cols].drop_duplicates()
     rows = []
 
     for _, combo in combos.iterrows():
         subj = int(combo["subject"])
         ps = combo["pipe_short"]
-        n_sess = int(combo["n_session"])
-        n_avail = n_sess - 1
 
         roles = _store.get_roles(subj, ps)
         if roles.empty:
             continue
+
+        if "n_session" in combo.index and pd.notna(combo["n_session"]):
+            n_sess = int(combo["n_session"])
+        elif "target_id" in roles.columns:
+            n_sess = int(pd.to_numeric(roles["target_id"], errors="coerce").nunique())
+        elif "pair_id" in roles.columns:
+            n_sess = int(pd.to_numeric(roles["pair_id"], errors="coerce").nunique())
+        else:
+            n_sess = np.nan
 
         mask = pd.Series(True, index=roles.index)
         if "method_row" in roles.columns:
@@ -51,6 +61,10 @@ def compute_utilization(_store, dataset):
 
         for fold_id, fold_data in filtered.groupby(fold_col):
             n_used = int((fold_data[role_col] == "train").sum())
+            if pd.notna(n_sess):
+                n_avail = int(n_sess) - 1
+            else:
+                n_avail = int(len(fold_data))
             rows.append({
                 "subject": subj, "pipe_short": ps,
                 "pair_id": int(fold_id), "n_used": n_used,

@@ -150,6 +150,31 @@ class DataStore:
 
         result = pd.concat(frames, ignore_index=True)
 
+        # Newer shared-gate experiment exports do not store n_session in the
+        # per-pipeline summary pickle.  The dashboard still needs it for
+        # utilization denominators, so infer it from the fold count or the
+        # shared CI-gate files when possible.
+        if "n_session" not in result.columns:
+            result["n_session"] = np.nan
+        result["n_session"] = pd.to_numeric(result["n_session"], errors="coerce")
+        missing_n_session = result["n_session"].isna()
+        if missing_n_session.any() and "n_valid_pairs" in result.columns:
+            inferred = (
+                pd.to_numeric(result["n_valid_pairs"], errors="coerce")
+                .groupby(result["subject"])
+                .transform("max")
+            )
+            result.loc[missing_n_session, "n_session"] = inferred[missing_n_session]
+
+        missing_n_session = result["n_session"].isna()
+        if missing_n_session.any():
+            gate_counts = self._shared_gate_session_counts()
+            if gate_counts:
+                inferred = result["subject"].map(gate_counts)
+                result.loc[missing_n_session, "n_session"] = inferred[missing_n_session]
+        if result["n_session"].notna().all():
+            result["n_session"] = result["n_session"].astype(int)
+
         # Classify BDP degradation status from the 'score' column
         if "score" in result.columns:
             result["degrade_status"] = result["score"].apply(
@@ -220,6 +245,11 @@ class DataStore:
         cache_key = (subject, pipeline_short)
         if cache_key in self._roles_cache:
             return self._roles_cache[cache_key]
+
+        df = self._load_shared_gate_roles(subject, pipeline_short)
+        if not df.empty:
+            self._roles_cache[cache_key] = df
+            return df
 
         pipe_file = PIPE_FILE_MAP.get(pipeline_short, pipeline_short)
         fname = f"{self.dataset_name}_{subject}_{pipe_file}_roles.csv"
@@ -544,6 +574,193 @@ class DataStore:
         if "mixed" in s:
             return "partial"
         return "n/a"
+
+    def _shared_gate_session_counts(self) -> dict[int, int]:
+        """Infer per-subject session counts from shared-gate CI files."""
+        pattern = os.path.join(
+            self.data_dir, f"{self.dataset_name}_*_shared_ci_gates.csv"
+        )
+        counts: dict[int, int] = {}
+        for fpath in glob.glob(pattern):
+            basename = os.path.basename(fpath)
+            prefix = f"{self.dataset_name}_"
+            suffix = "_shared_ci_gates.csv"
+            if not (basename.startswith(prefix) and basename.endswith(suffix)):
+                continue
+            subject_str = basename[len(prefix):-len(suffix)]
+            if not subject_str.isdigit():
+                continue
+            subj = int(subject_str)
+            try:
+                df = pd.read_csv(fpath, usecols=lambda c: c in {
+                    "pair_id", "target_session_abs_idx",
+                })
+            except Exception as exc:
+                logger.warning("Failed to inspect shared CI gates %s: %s", fpath, exc)
+                continue
+            if "target_session_abs_idx" in df.columns:
+                counts[subj] = int(df["target_session_abs_idx"].nunique())
+            elif "pair_id" in df.columns:
+                counts[subj] = int(df["pair_id"].nunique())
+        return counts
+
+    def _load_shared_gate_roles(self, subject, pipeline_short: str) -> pd.DataFrame:
+        """Build mechanism roles from shared-gate CI files when roles CSVs are absent.
+
+        The shared-gate experiment stores one CI/partition table per subject
+        instead of per-pipeline role CSVs.  This adapter exposes enough of the
+        old roles schema for the Session Mechanisms page.
+        """
+        if pipeline_short not in {"BDP_fb", "BDP_bf", "MMP_mta", "MMP_moe"}:
+            return pd.DataFrame()
+
+        fpath = os.path.join(
+            self.data_dir, f"{self.dataset_name}_{subject}_shared_ci_gates.csv"
+        )
+        if not os.path.isfile(fpath):
+            return pd.DataFrame()
+
+        try:
+            gates = pd.read_csv(fpath)
+        except Exception as exc:
+            logger.warning("Failed to read shared CI gates %s: %s", fpath, exc)
+            return pd.DataFrame()
+        if gates.empty:
+            return pd.DataFrame()
+
+        required = {
+            "subject", "pair_id", "target_session_abs_idx",
+            "target_session_label", "train_local_idx",
+            "train_session_abs_idx", "train_session_label", "feature",
+            "dist_est", "dist_lwr", "dist_upr",
+        }
+        if not required.issubset(gates.columns):
+            missing = sorted(required.difference(gates.columns))
+            logger.warning("Shared CI gates missing role columns %s in %s", missing, fpath)
+            return pd.DataFrame()
+
+        gates = gates.copy()
+        feature_order = {"CSP": 0, "logvar": 8, "TS": 16}
+        gates["method_row"] = gates["feature"].map(feature_order)
+        if gates["method_row"].isna().any():
+            fallback_codes = pd.factorize(gates["feature"], sort=True)[0] * 8
+            gates["method_row"] = gates["method_row"].fillna(pd.Series(fallback_codes, index=gates.index))
+        gates["method_row"] = gates["method_row"].astype(int)
+
+        pipeline_code = PIPE_FILE_MAP.get(pipeline_short, pipeline_short)
+        common = pd.DataFrame({
+            "subject": gates["subject"],
+            "dataset": self.dataset_name,
+            "pipeline": pipeline_code,
+            "feature": gates["feature"],
+            "classifier": "lda",
+            "da": "none",
+            "method_row": gates["method_row"],
+            "pair_id": gates["pair_id"],
+            "target_id": gates["target_session_abs_idx"],
+            "target_session_label": gates["target_session_label"],
+            "local_idx": gates["train_local_idx"],
+            "session_abs_idx": gates["train_session_abs_idx"],
+            "session_label": gates["train_session_label"],
+            "dist_est": gates["dist_est"],
+            "dist_lwr": gates["dist_lwr"],
+            "dist_upr": gates["dist_upr"],
+            "dist_type": gates.get("dist_type", "mmd"),
+            "partition_mode": gates.get("partition_mode", np.nan),
+            "degraded": gates.get("degraded", np.nan),
+            "is_best": gates.get("is_best_nearest", False),
+        })
+        common["dist_to_session"] = common["target_id"]
+        common["dist_est_method"] = "shared_gate"
+        common["weight"] = np.nan
+
+        if pipeline_short.startswith("BDP"):
+            selection = common.copy()
+            selection["stage"] = "selection"
+            selection["role"] = np.where(
+                gates.get("is_near_bridge", False), "bridge", "far"
+            )
+            selection["score_mode"] = "shared_gate_bridge_proxy"
+
+            final = common.copy()
+            final["stage"] = "final"
+            final["role"] = np.where(
+                gates.get("is_final_source", False), "train", "not_used"
+            )
+            final["score_mode"] = "shared_gate_final"
+            roles = pd.concat([selection, final], ignore_index=True)
+        else:
+            main = common.copy()
+            main["stage"] = "main"
+            main["role"] = np.select(
+                [
+                    gates.get("is_best_nearest", False),
+                    gates.get("is_near_bridge", False),
+                ],
+                ["nearest", "near"],
+                default="far",
+            )
+            main["score_mode"] = "shared_gate_near_set"
+
+            final = common.copy()
+            final["stage"] = "final"
+            final["role"] = np.where(
+                gates.get("is_final_source", False), "train", "not_used"
+            )
+            final["score_mode"] = "shared_gate_final"
+            roles = pd.concat([main, final], ignore_index=True)
+
+        target_rows = self._shared_gate_target_rows(gates, pipeline_code, pipeline_short)
+        if not target_rows.empty:
+            roles = pd.concat([roles, target_rows], ignore_index=True)
+
+        return roles
+
+    def _shared_gate_target_rows(
+        self, gates: pd.DataFrame, pipeline_code: str, pipeline_short: str
+    ) -> pd.DataFrame:
+        """Create target rows matching the legacy roles schema."""
+        target_cols = [
+            "subject", "pair_id", "target_session_abs_idx",
+            "target_session_label", "feature", "method_row",
+        ]
+        targets = gates[target_cols].drop_duplicates().copy()
+        if targets.empty:
+            return pd.DataFrame()
+
+        stages = ["selection", "final"] if pipeline_short.startswith("BDP") else ["main", "final"]
+        rows = []
+        for stage in stages:
+            df = pd.DataFrame({
+                "subject": targets["subject"],
+                "dataset": self.dataset_name,
+                "pipeline": pipeline_code,
+                "feature": targets["feature"],
+                "classifier": "lda",
+                "da": "none",
+                "method_row": targets["method_row"],
+                "pair_id": targets["pair_id"],
+                "target_id": targets["target_session_abs_idx"],
+                "target_session_label": targets["target_session_label"],
+                "local_idx": np.nan,
+                "session_abs_idx": targets["target_session_abs_idx"],
+                "session_label": targets["target_session_label"],
+                "role": "target",
+                "stage": stage,
+                "is_best": False,
+                "weight": np.nan,
+                "dist_to_session": np.nan,
+                "dist_est_method": "shared_gate",
+                "dist_est": np.nan,
+                "dist_lwr": np.nan,
+                "dist_upr": np.nan,
+                "dist_type": "mmd",
+                "partition_mode": np.nan,
+                "degraded": np.nan,
+                "score_mode": "shared_gate",
+            })
+            rows.append(df)
+        return pd.concat(rows, ignore_index=True) if rows else pd.DataFrame()
 
     # -- Internal helpers ----------------------------------------------------
 
