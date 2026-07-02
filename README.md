@@ -1,5 +1,9 @@
 # MSDA-Bench
 
+<p align="center">
+  <img src="static/cover.svg" alt="MSDA-Bench cover: pipeline benchmark, configuration heatmap, and session-role dashboard" width="100%">
+</p>
+
 **Multi-Source Domain Adaptation Benchmark for Cross-Session EEG Classification**
 
 An interactive dashboard for comparing how different source session utilization strategies handle distribution shift in EEG-based brain-computer interfaces.
