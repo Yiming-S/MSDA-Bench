@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata below."
+type: software
+title: "MSDA-Bench"
+abstract: "An interactive benchmark dashboard comparing multi-source domain-adaptation strategies for cross-session EEG."
+authors:
+  - family-names: "Shen"
+    given-names: "Yiming"
+    email: "yiming.shen001@umb.edu"
+    orcid: "https://orcid.org/0009-0004-6282-3755"
+  - family-names: "Degras"
+    given-names: "David"
+    email: "david.degras@umb.edu"
+    orcid: "https://orcid.org/0000-0002-7221-584X"
+version: "0.1.0"
+repository-code: "https://github.com/Yiming-S/MSDA-Bench"
+url: "https://github.com/Yiming-S/MSDA-Bench"
+license: MIT
+keywords:
+  - EEG
+  - brain-computer interface
+  - domain adaptation
+  - multi-source
+  - benchmark
+  - Streamlit
