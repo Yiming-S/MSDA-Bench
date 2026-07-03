@@ -104,7 +104,7 @@ METRIC_DEFS = {
     "M(s,p)": "Mean accuracy of pipeline p on subject s across folds.",
     "B(s,p)": "Best single-fold accuracy of pipeline p on subject s.",
     "G(s,p)": "Gain of pipeline p over the baseline for subject s.",
-    "H(s,p)": "Harmonic mean of precision and recall (F1-like) for pipeline p on subject s.",
+    "H(s,p)": "DA helps rate: fraction of configurations where domain adaptation improves accuracy over the baseline for pipeline p on subject s.",
 }
 
 # ---------------------------------------------------------------------------
