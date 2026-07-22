@@ -1,0 +1,85 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>MSDA-Bench (static)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@stlite/browser@1.8.1/build/stlite.css"/>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module">
+    import { mount } from "https://cdn.jsdelivr.net/npm/@stlite/browser@1.8.1/build/stlite.js";
+    mount(
+      {
+        entrypoint: "app.py",
+        requirements: ["pandas","numpy","matplotlib","plotly"],
+        archives: [{ url: "./data.zip", format: "zip" }],
+        files: {
+        ".streamlit/config.toml": {
+                "url": "./.streamlit/config.toml"
+        },
+        "app.py": {
+                "url": "./app.py"
+        },
+        "data_loader.py": {
+                "url": "./data_loader.py"
+        },
+        "file.svg": {
+                "url": "./file.svg"
+        },
+        "requirements.txt": {
+                "url": "./requirements.txt"
+        },
+        "static/cover.svg": {
+                "url": "./static/cover.svg"
+        },
+        "static/file.svg": {
+                "url": "./static/file.svg"
+        },
+        "utils.py": {
+                "url": "./utils.py"
+        },
+        "views/_10_efficiency.py": {
+                "url": "./views/_10_efficiency.py"
+        },
+        "views/_11_degradation.py": {
+                "url": "./views/_11_degradation.py"
+        },
+        "views/_1_overview.py": {
+                "url": "./views/_1_overview.py"
+        },
+        "views/_2_benchmark.py": {
+                "url": "./views/_2_benchmark.py"
+        },
+        "views/_3_stability.py": {
+                "url": "./views/_3_stability.py"
+        },
+        "views/_4_config.py": {
+                "url": "./views/_4_config.py"
+        },
+        "views/_5_subject.py": {
+                "url": "./views/_5_subject.py"
+        },
+        "views/_6_da.py": {
+                "url": "./views/_6_da.py"
+        },
+        "views/_7_mechanism.py": {
+                "url": "./views/_7_mechanism.py"
+        },
+        "views/_8_target.py": {
+                "url": "./views/_8_target.py"
+        },
+        "views/_9_error.py": {
+                "url": "./views/_9_error.py"
+        },
+        "views/__init__.py": {
+                "url": "./views/__init__.py"
+        }
+},
+      },
+      document.getElementById("root"),
+    );
+  </script>
+</body>
+</html>
