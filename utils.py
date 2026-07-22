@@ -325,4 +325,8 @@ def style_figure(fig, height=None):
     )
     if height is not None:
         fig.update_layout(height=height)
+    # Plotly.js renders a title that has a font but no text as the literal string
+    # "undefined"; default an unset title to empty so it stays blank.
+    if fig.layout.title.text is None:
+        fig.layout.title.text = ""
     return fig
