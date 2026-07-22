@@ -8,6 +8,8 @@
 
 An interactive dashboard for comparing how different source session utilization strategies handle distribution shift in EEG-based brain-computer interfaces.
 
+**▶ Live demo — runs entirely in your browser, nothing to install:** https://yiming-s.github.io/MSDA-Bench/
+
 ## Pipelines
 
 | Pipeline | Strategy | Sessions Used |
