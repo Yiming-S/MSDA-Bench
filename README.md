@@ -22,7 +22,7 @@ An interactive dashboard for comparing how different source session utilization 
 ## Quick Start
 
 ```bash
-git clone https://github.com/YimingShen/MSDA-Bench.git
+git clone https://github.com/Yiming-S/MSDA-Bench.git
 cd MSDA-Bench
 pip install -r requirements.txt
 streamlit run app.py
